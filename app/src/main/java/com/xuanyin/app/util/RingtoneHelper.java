@@ -9,23 +9,27 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.util.Log;
 
+/**
+ * 铃声 + 震动工具
+ * 兼容 setAlarm(Context, Object) / setAlarm(Context, Object, long)
+ */
 public class RingtoneHelper {
     private static final String TAG = "RingtoneHelper";
     private static Ringtone currentRingtone = null;
 
-    /** 播放闹钟铃声 */
-    public static void setAlarm(Context context, String tag) {
-        setAlarm(context, tag, 0L);
+    public static boolean setAlarm(Context context, Object tag) {
+        return setAlarm(context, tag, 0L);
     }
 
-    /** 播放闹钟铃声 + 震动 */
-    public static void setAlarm(Context context, String tag, long durationMs) {
-        if (context == null) return;
+    public static boolean setAlarm(Context context, Object tag, long durationMs) {
+        if (context == null) return false;
         try {
             stopAlarm(context);
+
             Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
             if (uri == null) uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
             if (uri == null) uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
             if (uri != null) {
                 currentRingtone = RingtoneManager.getRingtone(context.getApplicationContext(), uri);
                 if (currentRingtone != null) {
@@ -35,6 +39,7 @@ public class RingtoneHelper {
                     currentRingtone.play();
                 }
             }
+
             Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
             if (v != null && v.hasVibrator()) {
                 long[] pattern = new long[]{0, 500, 500, 500};
@@ -44,12 +49,13 @@ public class RingtoneHelper {
                     v.vibrate(pattern, 0);
                 }
             }
+            return true;
         } catch (Exception e) {
             Log.e(TAG, "setAlarm failed", e);
+            return false;
         }
     }
 
-    /** 停止铃声 */
     public static void stopAlarm() {
         try {
             if (currentRingtone != null && currentRingtone.isPlaying()) {
@@ -59,7 +65,6 @@ public class RingtoneHelper {
         } catch (Exception ignored) {}
     }
 
-    /** 停止铃声 + 停止震动 */
     public static void stopAlarm(Context context) {
         stopAlarm();
         if (context == null) return;
@@ -69,7 +74,6 @@ public class RingtoneHelper {
         } catch (Exception ignored) {}
     }
 
-    /** 是否正在播放 */
     public static boolean isPlaying() {
         try {
             return currentRingtone != null && currentRingtone.isPlaying();
