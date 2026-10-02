@@ -47,12 +47,12 @@ import java.util.Locale;
 public class IslandService extends Service {
     private static final String CH = "island_ch";
     private static final int NID = 1001;
-    private static final long ANIM_MS = 500L;
+    private static final long ANIM_MS = 480L;
     private static final long IDLE_TIMEOUT = 20000L;
-    private static final float FOLD_W = 0.62f;
-    private static final float EXP_W = 0.94f;
-    private static final float SPLIT_W = 0.98f;
     private static final Interpolator EASE = new PathInterpolator(0.22f, 1f, 0.36f, 1f);
+    // iPhone 尺寸（dp）
+    private static final int FOLD_W = 220;
+    private static final int FOLD_H = 40;
     private WindowManager wm;
     private FrameLayout root;
     private FrameLayout islandMain;
@@ -71,12 +71,13 @@ public class IslandService extends Service {
     private TextView notifTitle, notifText;
     private TextView ly1, ly2, ly3, ly4, ly5;
     private WindowManager.LayoutParams params;
-    private boolean expanded = false, musicMode = false, downloadMode = false;
+    private int mode = 0; // 0折叠 1展开 2分裂
+    private boolean musicMode = false, downloadMode = false;
     private boolean charging = false, notifVisible = false, playing = false;
     private Song currentSong;
     private List<Lyr> lyrics = new ArrayList<Lyr>();
     private int lastLyricIdx = -1;
-    private ValueAnimator sizeAnim, windowAnim;
+    private ValueAnimator sizeAnim;
     private int screenWidth;
     private final Handler ui = new Handler(Looper.getMainLooper());
     private static class Lyr { long t; String s; Lyr(long t, String s) { this.t = t; this.s = s; } }
@@ -84,7 +85,7 @@ public class IslandService extends Service {
         @Override public void run() { try { if (!musicMode) return; musicMode = false; setModeView(); } catch (Throwable ignored) {} }
     };
     private final Runnable autoCol = new Runnable() {
-        @Override public void run() { if (expanded) doToggle(); }
+        @Override public void run() { if (mode == 1) toggle(); }
     };
     private final BroadcastReceiver rx = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
@@ -147,13 +148,18 @@ public class IslandService extends Service {
             if (isCharging != charging) {
                 charging = isCharging;
                 if (chargingFx != null) chargingFx.setActive(isCharging);
-                if (backdrop != null) { backdrop.setChargingBreath(isCharging); backdrop.setMode(isCharging ? 2 : (musicMode ? 1 : 0)); }
+                if (backdrop != null) {
+                    backdrop.setChargingBreath(isCharging);
+                    backdrop.setMode(isCharging ? 2 : (musicMode ? 1 : 0));
+                }
                 if (charging) {
                     Haptic.charge(this);
                     if (islandMain != null) {
                         islandMain.animate().cancel();
-                        islandMain.animate().scaleX(1.08f).scaleY(1.08f).setDuration(160)
-                            .withEndAction(new Runnable() { @Override public void run() { if (islandMain != null) islandMain.animate().scaleX(1f).scaleY(1f).setDuration(380).setInterpolator(EASE).start(); } }).start();
+                        islandMain.animate().scaleX(1.06f).scaleY(1.06f).setDuration(150)
+                            .withEndAction(new Runnable() { @Override public void run() {
+                                if (islandMain != null) islandMain.animate().scaleX(1f).scaleY(1f).setDuration(360).setInterpolator(EASE).start();
+                            } }).start();
                     }
                 }
             }
@@ -183,7 +189,10 @@ public class IslandService extends Service {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 NotificationManager nm = getSystemService(NotificationManager.class);
-                if (nm != null && nm.getNotificationChannel(CH) == null) { NotificationChannel ch = new NotificationChannel(CH, "玄音·灵动岛", NotificationManager.IMPORTANCE_LOW); ch.setShowBadge(false); nm.createNotificationChannel(ch); }
+                if (nm != null && nm.getNotificationChannel(CH) == null) {
+                    NotificationChannel ch = new NotificationChannel(CH, "玄音·灵动岛", NotificationManager.IMPORTANCE_LOW);
+                    ch.setShowBadge(false); nm.createNotificationChannel(ch);
+                }
             }
             Notification n = new NotificationCompat.Builder(this, CH).setContentTitle("玄音").setContentText("灵动岛运行中").setSmallIcon(R.drawable.ic_launcher).setOngoing(true).build();
             startForeground(NID, n);
@@ -236,22 +245,30 @@ public class IslandService extends Service {
             if (bpl != null) bpl.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { Haptic.tap(v); Anim.pressLight(v); ctrl("toggle"); } });
             if (bn != null) bn.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { Haptic.tap(v); Anim.pressLight(v); ctrl("next"); } });
             int type = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : WindowManager.LayoutParams.TYPE_PHONE;
-            int initW = (int)(screenWidth * FOLD_W);
-            int initH = dp(44);
-            params = new WindowManager.LayoutParams(initW, initH, type,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            int foldW = Math.min(dp(FOLD_W), (int)(screenWidth * 0.68f));
+            int foldH = dp(FOLD_H);
+            // iPhone 风格：不设 LAYOUT_NO_LIMITS，避免覆盖状态栏
+            // 只有 NOT_FOCUSABLE + NOT_TOUCH_MODAL 保证周围触摸穿透
+            params = new WindowManager.LayoutParams(foldW, foldH, type,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                    | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                    | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
                 PixelFormat.TRANSLUCENT);
             params.gravity = Gravity.TOP | Gravity.START;
-            params.x = (screenWidth - initW) / 2;
-            params.y = getSafeTop() + dp(8);
+            params.x = (screenWidth - foldW) / 2;
+            params.y = getSafeTop() + dp(4);
             wm.addView(root, params);
-            islandMain.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { doToggle(); } });
+            // 关键：只有岛本身响应点击，周围完全不拦截
+            islandMain.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { toggle(); } });
             setModeView();
-            layoutMain(false, false);
+            updateRadius(0, foldH);
         } catch (Throwable t) { stopSelf(); }
     }
     private int getSafeTop() {
-        try { int id = getResources().getIdentifier("status_bar_height", "dimen", "android"); if (id > 0) return getResources().getDimensionPixelSize(id); } catch (Throwable ignored) {}
+        try {
+            int id = getResources().getIdentifier("status_bar_height", "dimen", "android");
+            if (id > 0) return getResources().getDimensionPixelSize(id);
+        } catch (Throwable ignored) {}
         return dp(24);
     }
     private int dp(float v) { return (int)(v * getResources().getDisplayMetrics().density + 0.5f); }
@@ -266,122 +283,139 @@ public class IslandService extends Service {
             if (musicGroup != null) musicGroup.setVisibility(mu ? View.VISIBLE : View.GONE);
         } catch (Throwable ignored) {}
     }
-    private void setWindowWidth(int w, boolean animate) {
+    // 核心：动画改窗口尺寸 + x 位置，保持居中
+    private void applySize(final int targetW, final int targetH, boolean animate) {
         try {
-            final int startW = params.width > 0 ? params.width : (int)(screenWidth * FOLD_W);
+            if (root == null || params == null) return;
+            final int startW = params.width > 0 ? params.width : targetW;
+            final int startH = params.height > 0 ? params.height : targetH;
+            final int targetX = (screenWidth - targetW) / 2;
             final int startX = params.x;
-            final int endX = (screenWidth - w) / 2;
-            if (windowAnim != null && windowAnim.isRunning()) windowAnim.cancel();
-            if (!animate) { params.width = w; params.x = endX; try { wm.updateViewLayout(root, params); } catch (Throwable ignored) {} return; }
-            windowAnim = ValueAnimator.ofFloat(0f, 1f);
-            windowAnim.setDuration(ANIM_MS); windowAnim.setInterpolator(EASE);
-            windowAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override public void onAnimationUpdate(ValueAnimator a) {
-                    float p = (float) a.getAnimatedValue();
-                    int cw = (int)(startW + (w - startW) * p);
-                    int cx = (int)(startX + (endX - startX) * p);
-                    params.width = cw; params.x = cx;
-                    try { wm.updateViewLayout(root, params); } catch (Throwable ignored) {}
-                }
-            });
-            windowAnim.start();
-        } catch (Throwable ignored) {}
-    }
-    private void setMainSize(int w, int h) {
-        try { ViewGroup.LayoutParams lp = islandMain.getLayoutParams(); lp.width = w; lp.height = h; islandMain.setLayoutParams(lp); } catch (Throwable ignored) {}
-    }
-    private void doToggle() {
-        try {
-            if (notifVisible) { hideNotif(); return; }
-            expanded = !expanded;
-            if (expanded) {
-                Haptic.expand(this);
-                if (expandedView != null) {
-                    expandedView.setVisibility(View.VISIBLE); expandedView.setAlpha(0f); expandedView.setScaleX(0.90f); expandedView.setScaleY(0.90f);
-                    expandedView.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(ANIM_MS).setInterpolator(EASE).start();
-                }
-                setWindowWidth((int)(screenWidth * EXP_W), true);
-                setMainSize((int)(screenWidth * EXP_W), dp(260));
-                layoutMain(true, true);
-                if (collapsedView != null) {
-                    collapsedView.animate().alpha(0f).setDuration(ANIM_MS / 3).setInterpolator(EASE).withEndAction(new Runnable() {
-                        @Override public void run() { if (collapsedView != null) { collapsedView.setVisibility(View.GONE); collapsedView.setAlpha(1f); } }
-                    }).start();
-                }
-                ui.removeCallbacks(autoCol);
-                ui.postDelayed(autoCol, 7000);
-            } else {
-                Haptic.collapse(this);
-                if (collapsedView != null) {
-                    collapsedView.setVisibility(View.VISIBLE); collapsedView.setAlpha(0f);
-                    collapsedView.animate().alpha(1f).setDuration(ANIM_MS).setInterpolator(EASE).start();
-                }
-                setWindowWidth((int)(screenWidth * FOLD_W), true);
-                setMainSize((int)(screenWidth * FOLD_W), dp(44));
-                layoutMain(false, true);
-                if (expandedView != null) {
-                    expandedView.animate().alpha(0f).scaleX(0.90f).scaleY(0.90f).setDuration(ANIM_MS / 2).setInterpolator(EASE)
-                        .withEndAction(new Runnable() { @Override public void run() { if (expandedView != null) { expandedView.setVisibility(View.GONE); expandedView.setAlpha(1f); expandedView.setScaleX(1f); expandedView.setScaleY(1f); } } }).start();
-                }
-                ui.removeCallbacks(autoCol);
-            }
-        } catch (Throwable ignored) {}
-    }
-    private void layoutMain(final boolean exp, boolean animate) {
-        try {
-            if (islandMain == null) return;
-            final int targetW = exp ? (int)(screenWidth * EXP_W) : (int)(screenWidth * FOLD_W);
-            final int targetH = exp ? dp(260) : dp(44);
-            final int startW = islandMain.getWidth() > 0 ? islandMain.getWidth() : (int)(screenWidth * FOLD_W);
-            final int startH = islandMain.getHeight() > 0 ? islandMain.getHeight() : dp(44);
             if (sizeAnim != null && sizeAnim.isRunning()) sizeAnim.cancel();
-            if (!animate) { setMainSize(targetW, targetH); updateRadius(exp, targetH); return; }
+            if (!animate) {
+                params.width = targetW;
+                params.height = targetH;
+                params.x = targetX;
+                wm.updateViewLayout(root, params);
+                updateRadius(mode, targetH);
+                return;
+            }
             sizeAnim = ValueAnimator.ofFloat(0f, 1f);
-            sizeAnim.setDuration(ANIM_MS); sizeAnim.setInterpolator(EASE);
+            sizeAnim.setDuration(ANIM_MS);
+            sizeAnim.setInterpolator(EASE);
             sizeAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override public void onAnimationUpdate(ValueAnimator a) {
                     float p = (float) a.getAnimatedValue();
                     int w = (int)(startW + (targetW - startW) * p);
                     int h = (int)(startH + (targetH - startH) * p);
-                    setMainSize(w, h); updateRadius(exp, h);
+                    int x = (int)(startX + (targetX - startX) * p);
+                    params.width = w;
+                    params.height = h;
+                    params.x = x;
+                    try { wm.updateViewLayout(root, params); } catch (Throwable ignored) {}
+                    updateRadius(mode, h);
                 }
             });
             sizeAnim.start();
         } catch (Throwable ignored) {}
     }
-    private void updateRadius(boolean exp, int h) {
+    private void updateRadius(int m, int h) {
         try {
             if (islandMain == null) return;
-            final float r = exp ? dp(28) : Math.min(dp(22), h / 2f);
-            islandMain.setOutlineProvider(new ViewOutlineProvider() { @Override public void getOutline(View v, Outline o) { o.setRoundRect(0, 0, v.getWidth(), v.getHeight(), r); } });
+            final float r = (m == 1) ? dp(24) : Math.min(dp(20), h / 2f);
+            islandMain.setOutlineProvider(new ViewOutlineProvider() {
+                @Override public void getOutline(View v, Outline o) {
+                    o.setRoundRect(0, 0, v.getWidth(), v.getHeight(), r);
+                }
+            });
             islandMain.setClipToOutline(true);
             if (backdrop != null) backdrop.setCornerRadius(r);
         } catch (Throwable ignored) {}
     }
+    private void toggle() {
+        try {
+            if (notifVisible) { hideNotif(); return; }
+            if (mode == 0) {
+                mode = 1;
+                Haptic.expand(this);
+                if (expandedView != null) {
+                    expandedView.setVisibility(View.VISIBLE);
+                    expandedView.setAlpha(0f);
+                    expandedView.setScaleX(0.92f); expandedView.setScaleY(0.92f);
+                    expandedView.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(ANIM_MS).setInterpolator(EASE).start();
+                }
+                int expW = (int)(screenWidth * 0.92f);
+                int expH = dp(260);
+                applySize(expW, expH, true);
+                if (collapsedView != null) {
+                    collapsedView.animate().alpha(0f).setDuration(ANIM_MS / 3).setInterpolator(EASE)
+                        .withEndAction(new Runnable() { @Override public void run() {
+                            if (collapsedView != null) { collapsedView.setVisibility(View.GONE); collapsedView.setAlpha(1f); }
+                        } }).start();
+                }
+                ui.removeCallbacks(autoCol);
+                ui.postDelayed(autoCol, 7000);
+            } else {
+                mode = 0;
+                Haptic.collapse(this);
+                if (collapsedView != null) {
+                    collapsedView.setVisibility(View.VISIBLE);
+                    collapsedView.setAlpha(0f);
+                    collapsedView.animate().alpha(1f).setDuration(ANIM_MS).setInterpolator(EASE).start();
+                }
+                int foldW = Math.min(dp(FOLD_W), (int)(screenWidth * 0.68f));
+                int foldH = dp(FOLD_H);
+                applySize(foldW, foldH, true);
+                if (expandedView != null) {
+                    expandedView.animate().alpha(0f).scaleX(0.92f).scaleY(0.92f).setDuration(ANIM_MS / 2).setInterpolator(EASE)
+                        .withEndAction(new Runnable() { @Override public void run() {
+                            if (expandedView != null) {
+                                expandedView.setVisibility(View.GONE);
+                                expandedView.setAlpha(1f); expandedView.setScaleX(1f); expandedView.setScaleY(1f);
+                            }
+                        } }).start();
+                }
+                ui.removeCallbacks(autoCol);
+            }
+        } catch (Throwable ignored) {}
+    }
+    // 通知分裂：窗口从 foldW 扩到 98%，主岛靠左，通知卡从右侧滑入
     private void showNotify(String title, String text) {
         try {
             if (notifCard == null || islandMain == null) return;
             if (notifTitle != null) notifTitle.setText(title == null ? "通知" : title);
             if (notifText != null) notifText.setText(text == null ? "" : text);
             if (backdrop != null) backdrop.setMode(3);
-            if (notifVisible) { ui.removeCallbacks(hideNotifRunnable); ui.postDelayed(hideNotifRunnable, 5000); return; }
+            if (notifVisible) {
+                ui.removeCallbacks(hideNotifRunnable);
+                ui.postDelayed(hideNotifRunnable, 5000);
+                return;
+            }
             notifVisible = true;
             Haptic.notify(this);
-            final int totalW = (int)(screenWidth * SPLIT_W);
-            final int mainW = (int)(screenWidth * FOLD_W);
-            final int cardW = totalW - mainW;
-            final int mainH = dp(44);
-            setWindowWidth(totalW, true);
-            islandMain.setX(0);
-            setMainSize(mainW, mainH);
-            updateRadius(false, mainH);
+            // 目标：窗口占 98%，主岛在左 62%，通知卡右侧 36%
+            int totalW = (int)(screenWidth * 0.98f);
+            int mainW = (int)(screenWidth * 0.62f);
+            int cardW = totalW - mainW;
+            int mainH = dp(FOLD_H);
+            // 主岛宽度固定为 mainW
+            try {
+                ViewGroup.LayoutParams mlp = islandMain.getLayoutParams();
+                mlp.width = mainW;
+                mlp.height = mainH;
+                islandMain.setLayoutParams(mlp);
+            } catch (Throwable ignored) {}
+            // 通知卡尺寸
             notifCard.setVisibility(View.VISIBLE);
             notifCard.setAlpha(0f);
             ViewGroup.LayoutParams clp = notifCard.getLayoutParams();
-            clp.width = cardW; clp.height = mainH;
+            clp.width = cardW;
+            clp.height = mainH;
             notifCard.setLayoutParams(clp);
             notifCard.setX(mainW);
             notifCard.setTranslationX(cardW);
+            // 窗口扩展动画
+            applySize(totalW, mainH, true);
             notifCard.animate().alpha(1f).translationX(0).setDuration(ANIM_MS).setInterpolator(EASE).start();
             ui.removeCallbacks(hideNotifRunnable);
             ui.postDelayed(hideNotifRunnable, 5000);
@@ -392,17 +426,21 @@ public class IslandService extends Service {
         try {
             if (notifCard == null || !notifVisible) return;
             notifVisible = false;
-            final int totalW = (int)(screenWidth * SPLIT_W);
-            final int mainW = (int)(screenWidth * FOLD_W);
-            final int cardW = totalW - mainW;
-            final int backW = expanded ? (int)(screenWidth * EXP_W) : (int)(screenWidth * FOLD_W);
+            int totalW = (int)(screenWidth * 0.98f);
+            int mainW = (int)(screenWidth * 0.62f);
+            int cardW = totalW - mainW;
             notifCard.animate().alpha(0f).translationX(cardW).setDuration(ANIM_MS / 2).setInterpolator(EASE)
                 .withEndAction(new Runnable() { @Override public void run() {
                     if (notifCard != null) notifCard.setVisibility(View.GONE);
-                    setWindowWidth(backW, true);
-                    int w = expanded ? (int)(screenWidth * EXP_W) : (int)(screenWidth * FOLD_W);
-                    int h = expanded ? dp(260) : dp(44);
-                    setMainSize(w, h); islandMain.setX(0); updateRadius(expanded, h);
+                    int backW = (mode == 1) ? (int)(screenWidth * 0.92f) : Math.min(dp(FOLD_W), (int)(screenWidth * 0.68f));
+                    int backH = (mode == 1) ? dp(260) : dp(FOLD_H);
+                    applySize(backW, backH, true);
+                    if (islandMain != null) {
+                        ViewGroup.LayoutParams mlp = islandMain.getLayoutParams();
+                        mlp.width = backW;
+                        mlp.height = backH;
+                        islandMain.setLayoutParams(mlp);
+                    }
                     if (backdrop != null) backdrop.setMode(charging ? 2 : (musicMode ? 1 : 0));
                 } }).start();
         } catch (Throwable ignored) {}
@@ -438,7 +476,8 @@ public class IslandService extends Service {
     private void onDlDone() {
         if (tvDlPct != null) tvDlPct.setText("✓");
         if (dlBar != null) dlBar.setProgress(100);
-        ui.postDelayed(new Runnable() { @Override public void run() { downloadMode = false; setModeView(); if (backdrop != null) backdrop.setMode(charging ? 2 : (musicMode ? 1 : 0)); } }, 2000);
+        ui.postDelayed(new Runnable() { @Override public void run() { downloadMode = false; setModeView();
+            if (backdrop != null) backdrop.setMode(charging ? 2 : (musicMode ? 1 : 0)); } }, 2000);
     }
     private void onDlErr() {
         if (tvDlPct != null) tvDlPct.setText("失败");
@@ -475,9 +514,9 @@ public class IslandService extends Service {
                 if (v == null) continue;
                 if (j >= 0 && j < lyrics.size()) {
                     v.setText(lyrics.get(j).s);
-                    if (k == 0) { v.setAlpha(1f); v.setTextSize(14f); }
-                    else if (k == -1 || k == 1) { v.setAlpha(0.7f); v.setTextSize(12f); }
-                    else { v.setAlpha(0.35f); v.setTextSize(12f); }
+                    if (k == 0) { v.setAlpha(1f); v.setTextSize(15f); }
+                    else if (k == -1 || k == 1) { v.setAlpha(0.7f); v.setTextSize(13f); }
+                    else { v.setAlpha(0.35f); v.setTextSize(13f); }
                 } else { v.setText(""); }
             }
         } catch (Throwable ignored) {}
@@ -507,21 +546,24 @@ public class IslandService extends Service {
     @Override public void onConfigurationChanged(Configuration c) {
         super.onConfigurationChanged(c);
         screenWidth = getResources().getDisplayMetrics().widthPixels;
-        int w = expanded ? (int)(screenWidth * EXP_W) : (int)(screenWidth * FOLD_W);
-        setWindowWidth(w, false);
-        layoutMain(expanded, false);
+        int w = (mode == 1) ? (int)(screenWidth * 0.92f) : Math.min(dp(FOLD_W), (int)(screenWidth * 0.68f));
+        int h = (mode == 1) ? dp(260) : dp(FOLD_H);
+        applySize(w, h, false);
     }
     @Override public int onStartCommand(Intent i, int f, int s) {
         if (i == null) return START_STICKY;
         String a = i.getAction();
         if ("TEST_NOTIFY".equals(a)) showNotify("测试通知", "灵动岛右侧分裂效果演示");
-        else if ("REFRESH_SIZE".equals(a)) { int w = expanded ? (int)(screenWidth * EXP_W) : (int)(screenWidth * FOLD_W); setWindowWidth(w, true); layoutMain(expanded, true); }
+        else if ("REFRESH_SIZE".equals(a)) {
+            int w = (mode == 1) ? (int)(screenWidth * 0.92f) : Math.min(dp(FOLD_W), (int)(screenWidth * 0.68f));
+            int h = (mode == 1) ? dp(260) : dp(FOLD_H);
+            applySize(w, h, true);
+        }
         return START_STICKY;
     }
     @Override public void onDestroy() {
         super.onDestroy();
         if (sizeAnim != null) sizeAnim.cancel();
-        if (windowAnim != null) windowAnim.cancel();
         ui.removeCallbacks(idleSwitch);
         try { unregisterReceiver(rx); } catch (Throwable ignored) {}
         if (root != null && wm != null) { try { wm.removeView(root); } catch (Throwable ignored) {} root = null; }

@@ -3,7 +3,7 @@
     android:id="@+id/island_expanded" android:visibility="gone"
     android:layout_width="match_parent" android:layout_height="match_parent">
     <ScrollView android:layout_width="match_parent" android:layout_height="match_parent"
-        android:scrollbars="none">
+        android:scrollbars="none" android:fillViewport="true">
         <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
             <LinearLayout android:id="@+id/group_life"
                 android:orientation="vertical" android:padding="20dp"
@@ -39,7 +39,7 @@
                 <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
                     android:layout_width="match_parent" android:layout_height="wrap_content">
                     <ImageView android:id="@+id/iv_cover_big"
-                        android:layout_width="48dp" android:layout_height="48dp"
+                        android:layout_width="46dp" android:layout_height="46dp"
                         android:scaleType="centerCrop" />
                     <LinearLayout android:orientation="vertical"
                         android:layout_marginStart="12dp" android:layout_width="0dp"
@@ -47,7 +47,7 @@
                         <TextView android:id="@+id/tv_song_title"
                             android:layout_width="match_parent" android:layout_height="wrap_content"
                             android:text="未播放" android:textColor="#FFFFFF"
-                            android:textSize="16sp" android:textStyle="bold"
+                            android:textSize="15sp" android:textStyle="bold"
                             android:maxLines="1" android:ellipsize="end" />
                         <TextView android:id="@+id/tv_song_artist"
                             android:layout_width="match_parent" android:layout_height="wrap_content"

@@ -1,31 +1,41 @@
 package com.xuanyin.app.widget;
 import android.content.Context;
-import android.graphics.*;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Paint;
+import android.graphics.RadialGradient;
+import android.graphics.RectF;
+import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.view.View;
 public class IslandBackdropView extends View {
     private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint glow = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF rect = new RectF();
     private final RectF inner = new RectF();
-    private float radius = 22f;
+    private float radius = 20f;
     private int accent = 0xFF9B6BFF;
     private float phase = 0f;
     private boolean breath = false;
+    private int mode = 0;
     public IslandBackdropView(Context c) { super(c); init(); }
     public IslandBackdropView(Context c, AttributeSet a) { super(c, a); init(); }
     public IslandBackdropView(Context c, AttributeSet a, int d) { super(c, a, d); init(); }
     private void init() {
         fill.setStyle(Paint.Style.FILL);
         stroke.setStyle(Paint.Style.STROKE);
-        stroke.setStrokeWidth(dp(1.2f));
-        glow.setStyle(Paint.Style.FILL);
-        setClickable(false); setFocusable(false);
+        stroke.setStrokeWidth(dp(0.8f));
+        setClickable(false);
+        setFocusable(false);
         setLayerType(LAYER_TYPE_SOFTWARE, null);
     }
-    public void setCornerRadius(float r) { if (Math.abs(radius - r) > 0.5f) { radius = r; invalidate(); } }
+    public void setCornerRadius(float r) {
+        if (Math.abs(radius - r) > 0.3f) { radius = r; invalidate(); }
+    }
     public void setMode(int m) {
+        mode = m;
+        // iPhone 灵动岛：所有模式都是黑色，只有内部微光颜色不同
         if (m == 1) accent = 0xFFFF6B9D;
         else if (m == 2) accent = 0xFF30D158;
         else if (m == 3) accent = 0xFFFFCC00;
@@ -33,40 +43,54 @@ public class IslandBackdropView extends View {
         else accent = 0xFF9B6BFF;
         invalidate();
     }
-    public void setChargingBreath(boolean b) { if (breath != b) { breath = b; invalidate(); } }
+    public void setChargingBreath(boolean b) {
+        if (breath != b) { breath = b; invalidate(); }
+    }
     @Override protected void onDraw(Canvas cv) {
         super.onDraw(cv);
         float w = getWidth(), h = getHeight();
         if (w <= 0 || h <= 0) return;
         float r = Math.min(radius, h / 2f);
-        phase += 0.02f; if (phase > 1f) phase -= 1f;
-        float pulse = breath ? (0.5f + 0.5f * (float)Math.sin(phase * Math.PI * 2)) : 0.5f;
         rect.set(0, 0, w, h);
-        glow.setShadowLayer(dp(breath ? 18f : 10f), 0, dp(2f), (accent & 0x00FFFFFF) | (breath ? 0x66000000 : 0x33000000));
-        glow.setColor(0x00000000);
-        cv.drawRoundRect(rect, r, r, glow);
-        fill.setShader(new LinearGradient(0, 0, w, h, new int[]{0xF0100E1E, 0xEE1A1830, 0xF00A0815}, new float[]{0f, 0.5f, 1f}, Shader.TileMode.CLAMP));
+
+        // 1. 纯黑底色（iPhone 灵动岛基色）
+        fill.setShader(new LinearGradient(0, 0, 0, h,
+                new int[]{0xFF000000, 0xFF0A0A0F, 0xFF05050A},
+                new float[]{0f, 0.5f, 1f}, Shader.TileMode.CLAMP));
         cv.drawRoundRect(rect, r, r, fill);
-        fill.setShader(new LinearGradient(0, 0, 0, h * 0.55f, new int[]{0x66FFFFFF, 0x11FFFFFF, 0x00FFFFFF}, new float[]{0f, 0.4f, 1f}, Shader.TileMode.CLAMP));
-        rect.set(dp(1), dp(1), w - dp(1), h * 0.55f);
-        cv.drawRoundRect(rect, r - dp(1), r - dp(1), fill);
+
+        // 2. 顶部微妙高光（液态反光）
+        fill.setShader(new LinearGradient(0, 0, 0, h * 0.5f,
+                new int[]{0x22FFFFFF, 0x08FFFFFF, 0x00FFFFFF},
+                new float[]{0f, 0.5f, 1f}, Shader.TileMode.CLAMP));
+        rect.set(0, 0, w, h * 0.5f);
+        cv.drawRoundRect(rect, r, r, fill);
         rect.set(0, 0, w, h);
-        fill.setShader(new RadialGradient(w * 0.15f, h * 0.5f, Math.max(w, h) * 0.8f, new int[]{(accent & 0x00FFFFFF) | 0x33, 0x00000000}, new float[]{0f, 1f}, Shader.TileMode.CLAMP));
-        cv.drawRoundRect(rect, r, r, fill);
-        if (breath) {
-            int a = (int)(40 + 60 * pulse);
-            fill.setShader(new RadialGradient(w / 2f, h / 2f, Math.max(w, h) * 0.6f, new int[]{(accent & 0x00FFFFFF) | (a << 24), 0x00000000}, new float[]{0f, 1f}, Shader.TileMode.CLAMP));
+
+        // 3. 内部微光（模式色，非常淡）
+        if (mode > 0) {
+            phase += 0.015f;
+            if (phase > 1f) phase -= 1f;
+            int baseA = breath ? (int)(15 + 25 * (0.5f + 0.5f * Math.sin(phase * Math.PI * 2))) : 18;
+            int col = (accent & 0x00FFFFFF) | (baseA << 24);
+            fill.setShader(new RadialGradient(w / 2f, h / 2f, Math.max(w, h) * 0.5f,
+                    new int[]{col, 0x00000000}, new float[]{0f, 1f}, Shader.TileMode.CLAMP));
             cv.drawRoundRect(rect, r, r, fill);
         }
+
+        // 4. 边缘白色描边（iPhone 独有的玻璃感）
         stroke.setShader(null);
         stroke.setShadowLayer(0, 0, 0, Color.TRANSPARENT);
-        stroke.setColor(0x55FFFFFF);
-        stroke.setStrokeWidth(dp(1.2f));
-        cv.drawRoundRect(rect, r, r, stroke);
-        inner.set(dp(1.5f), dp(1.5f), w - dp(1.5f), h - dp(1.5f));
-        stroke.setColor(0x1AFFFFFF);
+        stroke.setColor(0x2EFFFFFF);
         stroke.setStrokeWidth(dp(0.8f));
-        cv.drawRoundRect(inner, r - dp(1.5f), r - dp(1.5f), stroke);
+        cv.drawRoundRect(rect, r, r, stroke);
+
+        // 5. 内部 1px 微光边
+        inner.set(dp(0.8f), dp(0.8f), w - dp(0.8f), h - dp(0.8f));
+        stroke.setColor(0x14FFFFFF);
+        stroke.setStrokeWidth(dp(0.5f));
+        cv.drawRoundRect(inner, r - dp(0.8f), r - dp(0.8f), stroke);
+
         if (breath) postInvalidateOnAnimation();
     }
     private float dp(float v) { return v * getResources().getDisplayMetrics().density; }
