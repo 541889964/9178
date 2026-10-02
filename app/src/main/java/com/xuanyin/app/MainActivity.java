@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         bind(R.id.btn_island, this::ensureOverlay);
         bind(R.id.btn_settings, () -> {
             startActivity(new Intent(this, SettingsActivity.class));
-            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
         bind(R.id.card_search, this::searchDialog);
 
@@ -110,14 +110,14 @@ public class MainActivity extends AppCompatActivity {
         try {
             MusicService.playList(this, localSongs, pos);
             startActivity(new Intent(this, PlayerActivity.class));
-            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         } catch (Throwable ignored) {}
     }
     private void playOnline(int pos) {
         try {
             MusicService.playList(this, onlineSongs, pos);
             startActivity(new Intent(this, PlayerActivity.class));
-            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         } catch (Throwable ignored) {}
     }
 

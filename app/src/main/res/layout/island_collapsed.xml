@@ -4,7 +4,7 @@
     android:layout_width="match_parent" android:layout_height="match_parent">
     <LinearLayout android:id="@+id/group_life_mini"
         android:orientation="horizontal" android:gravity="center_vertical"
-        android:paddingHorizontal="18dp"
+        android:paddingHorizontal="16dp"
         android:layout_width="match_parent" android:layout_height="match_parent">
         <TextView android:id="@+id/tv_time_mini"
             android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -24,11 +24,9 @@
         android:orientation="horizontal" android:gravity="center_vertical"
         android:paddingHorizontal="10dp" android:visibility="gone"
         android:layout_width="match_parent" android:layout_height="match_parent">
-        <FrameLayout android:layout_width="34dp" android:layout_height="34dp">
-            <ImageView android:id="@+id/iv_cover_mini"
-                android:layout_width="30dp" android:layout_height="30dp"
-                android:layout_gravity="center" android:scaleType="centerCrop" />
-        </FrameLayout>
+        <ImageView android:id="@+id/iv_cover_mini"
+            android:layout_width="28dp" android:layout_height="28dp"
+            android:scaleType="centerCrop" />
         <LinearLayout android:orientation="vertical"
             android:layout_marginStart="8dp" android:layout_width="0dp"
             android:layout_weight="1" android:layout_height="wrap_content">
@@ -46,25 +44,23 @@
                     android:maxLines="1" android:ellipsize="end" />
                 <TextView android:id="@+id/tv_lyric2_mini"
                     android:layout_width="0dp" android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    android:layout_height="wrap_content" android:text=""
-                    android:textColor="#66FFFFFF" android:textSize="11sp"
+                    android:layout_marginStart="8dp" android:layout_height="wrap_content"
+                    android:text="" android:textColor="#66FFFFFF" android:textSize="11sp"
                     android:maxLines="1" android:ellipsize="end" />
             </LinearLayout>
         </LinearLayout>
-        <LinearLayout android:id="@+id/wave_box"
-            android:orientation="horizontal" android:gravity="center_vertical"
-            android:layout_width="30dp" android:layout_height="22dp"
+        <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_width="26dp" android:layout_height="20dp"
             android:layout_marginStart="6dp">
-            <View android:id="@+id/wave1" android:layout_width="3dp" android:layout_height="8dp"
+            <View android:layout_width="3dp" android:layout_height="8dp"
                 android:layout_marginEnd="2dp" android:background="#FF6B9D" />
-            <View android:id="@+id/wave2" android:layout_width="3dp" android:layout_height="14dp"
+            <View android:layout_width="3dp" android:layout_height="14dp"
                 android:layout_marginEnd="2dp" android:background="#9B6BFF" />
-            <View android:id="@+id/wave3" android:layout_width="3dp" android:layout_height="10dp"
+            <View android:layout_width="3dp" android:layout_height="10dp"
                 android:layout_marginEnd="2dp" android:background="#FF6B9D" />
-            <View android:id="@+id/wave4" android:layout_width="3dp" android:layout_height="16dp"
+            <View android:layout_width="3dp" android:layout_height="16dp"
                 android:layout_marginEnd="2dp" android:background="#9B6BFF" />
-            <View android:id="@+id/wave5" android:layout_width="3dp" android:layout_height="6dp"
+            <View android:layout_width="3dp" android:layout_height="6dp"
                 android:background="#FF6B9D" />
         </LinearLayout>
     </LinearLayout>
@@ -75,7 +71,8 @@
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="⬇" android:textSize="16sp" android:textColor="#5AC8FA" />
         <LinearLayout android:orientation="vertical" android:layout_weight="1"
-            android:layout_marginStart="10dp" android:layout_width="0dp" android:layout_height="wrap_content">
+            android:layout_marginStart="10dp" android:layout_width="0dp"
+            android:layout_height="wrap_content">
             <TextView android:id="@+id/tv_dl_title_mini"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:text="下载中" android:textColor="#FFFFFF" android:textSize="12sp"

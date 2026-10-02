@@ -69,7 +69,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         bind(R.id.btn_back, () -> {
             finish();
-            try { overridePendingTransition(R.anim.fade_in, R.anim.fade_out); } catch (Throwable ignored) {}
+            try { overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right); } catch (Throwable ignored) {}
         });
         bind(R.id.btn_prev, () -> {
             try { startService(new android.content.Intent(this, MusicService.class)
