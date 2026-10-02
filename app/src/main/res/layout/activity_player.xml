@@ -2,6 +2,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:background="@color/bg_deep">
+    <com.xuanyin.app.widget.AuroraBackgroundView
+        android:layout_width="match_parent" android:layout_height="match_parent" />
     <ImageView android:id="@+id/pulse" android:layout_width="match_parent"
         android:layout_height="match_parent" android:background="@drawable/bg_glow" android:alpha="0.5" />
     <LinearLayout android:orientation="vertical" android:padding="20dp"
@@ -21,10 +23,19 @@
                 android:background="@drawable/bg_search"
                 android:src="@android:drawable/stat_sys_download" android:tint="#FFFFFF" />
         </LinearLayout>
-        <ImageView android:id="@+id/iv_cover" android:layout_gravity="center"
-            android:layout_marginTop="24dp" android:layout_width="260dp" android:layout_height="260dp"
-            android:background="@drawable/bg_gradient_button"
-            android:scaleType="centerCrop" android:elevation="14dp" />
+        <FrameLayout android:layout_gravity="center"
+            android:layout_marginTop="24dp"
+            android:layout_width="wrap_content" android:layout_height="wrap_content">
+            <com.xuanyin.app.widget.GlowRingView
+                android:id="@+id/glow_cover"
+                android:layout_width="320dp" android:layout_height="320dp"
+                android:layout_gravity="center" />
+            <ImageView android:id="@+id/iv_cover"
+                android:layout_width="260dp" android:layout_height="260dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_gradient_button"
+                android:scaleType="centerCrop" android:elevation="14dp" />
+        </FrameLayout>
         <TextView android:id="@+id/tv_title" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:layout_marginTop="24dp"
             android:gravity="center" android:text="未播放" android:textColor="@color/white"

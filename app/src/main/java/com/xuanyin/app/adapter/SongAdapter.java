@@ -14,8 +14,10 @@ import com.xuanyin.app.util.WallpaperHelper;
 import java.util.List;
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.VH> {
     public interface OnClick { void onItem(Song s, int pos); }
-    private final List<Song> data; private final OnClick click;
-    private long currentId = -1; private int lastAnimPos = -1;
+    private final List<Song> data;
+    private final OnClick click;
+    private long currentId = -1;
+    private int lastAnimPos = -1;
     public SongAdapter(List<Song> d, OnClick c) { data = d; click = c; }
     public void setCurrent(long id) { currentId = id; notifyDataSetChanged(); }
     @NonNull @Override public VH onCreateViewHolder(@NonNull ViewGroup p, int v) {
@@ -32,17 +34,20 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.VH> {
             h.itemView.setAlpha(0f);
             h.itemView.setTranslationY(72f);
             h.itemView.setScaleX(0.90f); h.itemView.setScaleY(0.90f);
+            h.itemView.setRotationX(-8f);
+            h.itemView.setCameraDistance(12000f);
             h.itemView.animate()
-                .alpha(1f).translationY(0).scaleX(1f).scaleY(1f)
+                .alpha(1f).translationY(0).scaleX(1f).scaleY(1f).rotationX(0f)
                 .setDuration(600).setStartDelay(Math.min(pos, 14) * 42L)
                 .setInterpolator(new OvershootInterpolator(0.85f)).start();
             lastAnimPos = pos;
         }
         h.itemView.setOnClickListener(v -> {
             Haptic.tap(v);
-            v.animate().scaleX(0.92f).scaleY(0.92f).setDuration(80)
-                .withEndAction(() -> v.animate().scaleX(1f).scaleY(1f).setDuration(260)
-                    .setInterpolator(new OvershootInterpolator(2.4f)).start()).start();
+            v.setCameraDistance(12000f);
+            v.animate().scaleX(0.92f).scaleY(0.92f).rotationX(6f).setDuration(90)
+                .withEndAction(() -> v.animate().scaleX(1f).scaleY(1f).rotationX(0f)
+                    .setDuration(320).setInterpolator(new OvershootInterpolator(2.4f)).start()).start();
             click.onItem(s, h.getAdapterPosition());
         });
         h.itemView.setOnLongClickListener(v -> { Haptic.longPress(v); return true; });

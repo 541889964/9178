@@ -48,6 +48,12 @@ public class IslandService extends Service {
     private boolean expandedState = false, musicMode = false, downloadMode = false;
     private boolean charging = false, notifVisible = false;
     private Song currentSong;
+    private List<LyricsParser.Line> lyrics;
+    private int lastLyricIdx = -1;
+    private TextView tvLyricMini;
+    private TextView tvLyric2Mini;
+    private TextView tvSongTitleMini;
+    private LyricLineView[] lyricLines;
     private ValueAnimator sizeAnim;
     private int screenWidth;
     private final Handler ui = new Handler(Looper.getMainLooper());
@@ -75,6 +81,11 @@ public class IslandService extends Service {
                     case "com.xuanyin.app.DL_PROGRESS": onDlProg(i.getStringExtra("title"), i.getIntExtra("percent", 0)); break;
                     case "com.xuanyin.app.DL_DONE": onDlDone(); break;
                     case "com.xuanyin.app.DL_ERROR": onDlErr(); break;
+                    case "com.xuanyin.app.LYRICS":
+                        String lrc = i.getStringExtra("lrc");
+                        lyrics = LyricsParser.parse(lrc);
+                        lastLyricIdx = -1;
+                        break;
                     case Intent.ACTION_BATTERY_CHANGED: onBattery(i); break;
                 }
             } catch (Throwable ignored) {}
@@ -127,6 +138,7 @@ public class IslandService extends Service {
         f.addAction("com.xuanyin.app.DL_PROGRESS");
         f.addAction("com.xuanyin.app.DL_DONE");
         f.addAction("com.xuanyin.app.DL_ERROR");
+        f.addAction("com.xuanyin.app.LYRICS");
         f.addAction(Intent.ACTION_BATTERY_CHANGED);
         try {
             if (Build.VERSION.SDK_INT >= 33) registerReceiver(rx, f, Context.RECEIVER_NOT_EXPORTED);
@@ -384,6 +396,9 @@ public class IslandService extends Service {
         if (ivCoverBig != null) WallpaperHelper.loadCover(this, ivCoverBig, s.id);
         if (pulseMini != null) pulseMini.setPulsing(true);
         if (tvLyric != null) tvLyric.setText(s.title + "\n" + s.displayArtist());
+        if (tvSongTitleMini != null) tvSongTitleMini.setText(s.title);
+        lyrics = null;
+        lastLyricIdx = -1;
         if (backdrop != null) backdrop.setMode(charging ? 2 : 1);
     }
     private void onDlStart(String t) {
@@ -442,9 +457,45 @@ public class IslandService extends Service {
                         tvAlarm.setText("未设置".equals(al) ? "未设置闹钟" : "闹钟 " + al);
                     }
                 } catch (Throwable ignored) {}
-                ui.postDelayed(this, 1000);
+                tickLyrics();
+                ui.postDelayed(this, 200);
             }
         });
+    }
+    private void tickLyrics() {
+        try {
+            if (!musicMode || lyrics == null || lyrics.isEmpty()) return;
+            long pos = 0;
+            try { androidx.media3.exoplayer.ExoPlayer ep = MusicService.getPlayer();
+                if (ep != null) pos = ep.getCurrentPosition();
+            } catch (Throwable ignored) {}
+            int idx = LyricsParser.findIndex(lyrics, pos);
+            if (idx == lastLyricIdx) return;
+            lastLyricIdx = idx;
+            if (idx < 0) return;
+            if (tvLyricMini != null) tvLyricMini.setText(lyrics.get(idx).text);
+            if (tvLyric2Mini != null) {
+                if (idx + 1 < lyrics.size()) tvLyric2Mini.setText(lyrics.get(idx + 1).text);
+                else tvLyric2Mini.setText("");
+            }
+            if (lyricLines != null) {
+                for (int k = -2; k <= 2; k++) {
+                    int j = idx + k;
+                    LyricLineView v = lyricLines[k + 2];
+                    if (v == null) continue;
+                    if (j >= 0 && j < lyrics.size()) {
+                        v.setText(lyrics.get(j).text);
+                        v.setCurrent(k == 0);
+                        if (k == 0) {
+                            long t0 = lyrics.get(j).time;
+                            long t1 = (j + 1 < lyrics.size()) ? lyrics.get(j + 1).time : t0 + 4000;
+                            float prog = t1 > t0 ? Math.max(0f, Math.min(1f, (pos - t0) / (float)(t1 - t0))) : 0f;
+                            v.setProgress(prog);
+                        } else v.setProgress(0f);
+                    } else { v.setText(""); v.setCurrent(false); v.setProgress(0f); }
+                }
+            }
+        } catch (Throwable ignored) {}
     }
     @Override public void onConfigurationChanged(Configuration c) {
         super.onConfigurationChanged(c);

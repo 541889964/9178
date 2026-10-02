@@ -9,6 +9,7 @@ import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
 import com.xuanyin.app.R;
 import com.xuanyin.app.model.Song;
+import com.xuanyin.app.util.LyricsFetcher;
 import java.util.ArrayList;
 import java.util.List;
 public class MusicService extends Service {
@@ -18,6 +19,7 @@ public class MusicService extends Service {
     public static final String ACTION_PREV = "com.xuanyin.app.PREV";
     public static final String A_SONG_CHANGED = "com.xuanyin.app.SONG_CHANGED";
     public static final String A_PLAY_STATE = "com.xuanyin.app.PLAY_STATE";
+    public static final String A_LYRICS = "com.xuanyin.app.LYRICS";
     private static final String CH = "music_ch";
     private static final int NID = 1002;
     private static ExoPlayer player;
@@ -45,12 +47,15 @@ public class MusicService extends Service {
     }
     private static void playIndex(Context c, int i) {
         if (i < 0 || i >= playlist.size()) return;
-        Song s = playlist.get(i); currentSong = s;
+        Song s = playlist.get(i);
+        currentSong = s;
         Intent intent = new Intent(c, MusicService.class);
-        intent.setAction(ACTION_PLAY); intent.putExtra("song", s);
+        intent.setAction(ACTION_PLAY);
+        intent.putExtra("song", s);
         c.startService(intent);
     }
     public static Song getCurrent() { return currentSong; }
+    public static ExoPlayer getPlayer() { return player; }
     public static List<Song> getPlaylist() { return playlist; }
     @Override public void onCreate() {
         super.onCreate();
@@ -79,6 +84,17 @@ public class MusicService extends Service {
                         player.prepare(); player.play();
                         updateNotification();
                         sendBroadcast(new Intent(A_SONG_CHANGED).putExtra("song", s));
+                        if (s.isOnline) {
+                            LyricsFetcher.fetch(s.id, lrc -> {
+                                Intent li = new Intent(A_LYRICS);
+                                li.putExtra("lrc", lrc);
+                                sendBroadcast(li);
+                            });
+                        } else {
+                            Intent li = new Intent(A_LYRICS);
+                            li.putExtra("lrc", "");
+                            sendBroadcast(li);
+                        }
                     }
                     break;
                 }
