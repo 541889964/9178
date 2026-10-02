@@ -10,6 +10,7 @@ import androidx.media3.exoplayer.ExoPlayer;
 import com.xuanyin.app.R;
 import com.xuanyin.app.model.Song;
 import com.xuanyin.app.util.LyricsFetcher;
+import com.xuanyin.app.util.Prefs;
 import java.util.ArrayList;
 import java.util.List;
 public class MusicService extends Service {
@@ -28,7 +29,8 @@ public class MusicService extends Service {
     private static Song currentSong;
     private static List<Song> playlist = new ArrayList<>();
     private static int currentIndex = -1;
-    private static int mode = 0; // 0=顺序 1=单曲 2=随机
+    private static int mode = 0;
+    private static long sessionStart = 0;
     public static void playList(Context c, List<Song> list, int index) {
         if (list == null || list.isEmpty()) return;
         playlist = new ArrayList<>(list);
@@ -81,15 +83,35 @@ public class MusicService extends Service {
     public static Song getCurrent() { return currentSong; }
     public static ExoPlayer getPlayer() { return player; }
     public static int getMode() { return mode; }
+    // 累计听歌时长（秒）
+    private void addListenTime() {
+        if (sessionStart <= 0) return;
+        long now = System.currentTimeMillis();
+        long delta = (now - sessionStart) / 1000L;
+        sessionStart = 0;
+        if (delta <= 0 || delta > 7200) return; // 一次最多算 2 小时，避免异常
+        int cur = Prefs.getInt("total_play_seconds", 0);
+        Prefs.put("total_play_seconds", cur + (int)delta);
+    }
     @Override public void onCreate() {
         super.onCreate();
+        Prefs.init(this);
         player = new ExoPlayer.Builder(this).build();
         player.addListener(new Player.Listener() {
             @Override public void onIsPlayingChanged(boolean p) {
+                if (p) {
+                    if (sessionStart == 0) sessionStart = System.currentTimeMillis();
+                } else {
+                    addListenTime();
+                }
                 sendBroadcast(new Intent(A_PLAY_STATE).putExtra("playing", p));
             }
             @Override public void onPlaybackStateChanged(int state) {
-                if (state == Player.STATE_ENDED) next(MusicService.this);
+                if (state == Player.STATE_ENDED) {
+                    addListenTime();
+                    sessionStart = System.currentTimeMillis();
+                    next(MusicService.this);
+                }
             }
         });
         ensureChannel();
@@ -101,11 +123,13 @@ public class MusicService extends Service {
                 case ACTION_PLAY: {
                     Song s = (Song) intent.getSerializableExtra("song");
                     if (s != null) {
+                        addListenTime();
                         currentSong = s;
                         String url = s.isOnline ? s.onlineUrl : s.path;
                         try { player.stop(); player.clearMediaItems(); } catch (Throwable ignored) {}
                         player.setMediaItem(MediaItem.fromUri(url));
                         player.prepare(); player.play();
+                        sessionStart = System.currentTimeMillis();
                         updateNotification();
                         sendBroadcast(new Intent(A_SONG_CHANGED).putExtra("song", s));
                         if (s.isOnline) {
@@ -119,8 +143,8 @@ public class MusicService extends Service {
                     break;
                 }
                 case ACTION_TOGGLE: player.setPlayWhenReady(!player.getPlayWhenReady()); break;
-                case ACTION_NEXT: next(this); break;
-                case ACTION_PREV: prev(this); break;
+                case ACTION_NEXT: addListenTime(); sessionStart = System.currentTimeMillis(); next(this); break;
+                case ACTION_PREV: addListenTime(); sessionStart = System.currentTimeMillis(); prev(this); break;
                 case ACTION_CYCLE_MODE: cycleMode(this); break;
             }
         }
@@ -145,6 +169,10 @@ public class MusicService extends Service {
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         nm.notify(NID, buildNotification());
     }
-    @Override public void onDestroy() { if (player != null) player.release(); player = null; super.onDestroy(); }
+    @Override public void onDestroy() {
+        addListenTime();
+        if (player != null) player.release();
+        player = null; super.onDestroy();
+    }
     @Nullable @Override public IBinder onBind(Intent i) { return null; }
 }

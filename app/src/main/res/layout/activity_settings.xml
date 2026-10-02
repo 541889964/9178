@@ -7,8 +7,13 @@
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="玄音设置" android:textColor="@color/white"
             android:textSize="22sp" android:textStyle="bold" />
+        <TextView android:id="@+id/tv_listen_time"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="累计听歌 0 分钟"
+            android:textColor="#C9BFF5" android:textSize="13sp" />
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_marginTop="24dp" android:text="折叠宽度 (30~95%)"
+            android:layout_marginTop="20dp" android:text="折叠宽度 (30~95%)"
             android:textColor="@color/sub_text" android:textSize="13sp" />
         <SeekBar android:id="@+id/sb_collapsed" android:max="65"
             android:layout_width="match_parent" android:layout_height="wrap_content" />
@@ -39,7 +44,11 @@
         <TextView android:id="@+id/tv_expanded_h_val" android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:text="260dp"
             android:textColor="@color/white" android:textSize="13sp" />
-        <TextView android:id="@+id/btn_alarm" android:layout_marginTop="30dp"
+        <TextView android:id="@+id/btn_record" android:layout_marginTop="20dp"
+            android:padding="16dp" android:background="@drawable/bg_card"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="🎬 录屏" android:textColor="@color/white" android:textSize="14sp" />
+        <TextView android:id="@+id/btn_alarm" android:layout_marginTop="12dp"
             android:padding="16dp" android:background="@drawable/bg_card"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="⏰ 闹钟" android:textColor="@color/white" android:textSize="14sp" />

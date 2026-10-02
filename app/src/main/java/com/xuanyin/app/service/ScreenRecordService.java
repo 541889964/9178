@@ -25,8 +25,8 @@ import java.util.Locale;
 public class ScreenRecordService extends Service {
     public static final String ACTION_START = "com.xuanyin.app.REC_START";
     public static final String ACTION_STOP = "com.xuanyin.app.REC_STOP";
-    public static final String EXTRA_RESULT_CODE = "code";
-    public static final String EXTRA_RESULT_DATA = "data";
+    public static final String EXTRA_CODE = "code";
+    public static final String EXTRA_DATA = "data";
     public static final String A_STATE = "com.xuanyin.app.REC_STATE";
     private static final String CH = "rec_ch";
     private static final int NID = 2001;
@@ -39,8 +39,8 @@ public class ScreenRecordService extends Service {
         if (intent == null) return START_STICKY;
         String a = intent.getAction();
         if (ACTION_START.equals(a)) {
-            int code = intent.getIntExtra(EXTRA_RESULT_CODE, -1);
-            Intent data = intent.getParcelableExtra(EXTRA_RESULT_DATA);
+            int code = intent.getIntExtra(EXTRA_CODE, -1);
+            Intent data = intent.getParcelableExtra(EXTRA_DATA);
             if (code > 0 && data != null) startRecord(code, data);
         } else if (ACTION_STOP.equals(a)) {
             stopRecord();
@@ -56,21 +56,19 @@ public class ScreenRecordService extends Service {
             WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
             if (Build.VERSION.SDK_INT >= 17) wm.getDefaultDisplay().getRealMetrics(dm);
             else wm.getDefaultDisplay().getMetrics(dm);
-            int w = dm.widthPixels;
-            int h = dm.heightPixels;
-            int dpi = dm.densityDpi;
+            int w = dm.widthPixels, h = dm.heightPixels, dpi = dm.densityDpi;
             File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), "玄音");
             if (!dir.exists()) dir.mkdirs();
             String name = "screen_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date()) + ".mp4";
             outFile = new File(dir, name);
-            recorder = new MediaRecorder();
             if (Build.VERSION.SDK_INT >= 31) recorder = new MediaRecorder(this);
+            else recorder = new MediaRecorder();
             recorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
             recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
             recorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
             recorder.setVideoSize(w, h);
             recorder.setVideoFrameRate(30);
-            recorder.setVideoEncodingBitRate(6_000_000);
+            recorder.setVideoEncodingBitRate(6000000);
             recorder.setOutputFile(outFile.getAbsolutePath());
             recorder.prepare();
             MediaProjectionManager mpm = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
@@ -81,10 +79,7 @@ public class ScreenRecordService extends Service {
             recorder.start();
             recording = true;
             sendState(true);
-        } catch (Throwable t) {
-            sendState(false);
-            stopSelf();
-        }
+        } catch (Throwable t) { sendState(false); stopSelf(); }
     }
     private void stopRecord() {
         if (!recording) { stopSelf(); return; }
@@ -103,6 +98,7 @@ public class ScreenRecordService extends Service {
         try {
             Intent i = new Intent(A_STATE);
             i.putExtra("on", on);
+            if (outFile != null) i.putExtra("path", outFile.getAbsolutePath());
             i.setPackage(getPackageName());
             sendBroadcast(i);
         } catch (Throwable ignored) {}
@@ -124,9 +120,6 @@ public class ScreenRecordService extends Service {
             .setSmallIcon(R.drawable.ic_launcher)
             .setOngoing(true).build();
     }
-    @Override public void onDestroy() {
-        if (recording) stopRecord();
-        super.onDestroy();
-    }
+    @Override public void onDestroy() { if (recording) stopRecord(); super.onDestroy(); }
     @Nullable @Override public IBinder onBind(Intent i) { return null; }
 }
