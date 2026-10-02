@@ -34,13 +34,13 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import com.xuanyin.app.R;
 import com.xuanyin.app.model.Song;
-import com.xuanyin.app.util.AlarmHelper;
 import com.xuanyin.app.util.Anim;
 import com.xuanyin.app.util.Haptic;
 import com.xuanyin.app.util.IslandAdaptiveHelper;
-import com.xuanyin.app.util.LyricsParser;
+import com.xuanyin.app.util.Prefs;
 import com.xuanyin.app.util.WallpaperHelper;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -54,46 +54,45 @@ public class IslandService extends Service {
     private static final Interpolator EASE_OPEN = new PathInterpolator(0.16f, 1f, 0.3f, 1f);
     private static final Interpolator EASE_CLOSE = new PathInterpolator(0.4f, 0f, 0.6f, 1f);
 
+    // 简单歌词行
+    private static class L { long t; String s; L(long t, String s) { this.t = t; this.s = s; } }
+
     private WindowManager wm;
     private FrameLayout root;
-    private View islandMain;
-    private View notifCard;
-    private View backdrop;
-    private View chargingFx;
-
+    private View islandMain, notifCard, backdrop, chargingFx;
     private View collapsedView, collapsedLife, collapsedMusic, collapsedDl;
     private TextView tvTimeMini, tvBatteryMini, tvCollapsedTitle, tvDlTitle, tvDlPct;
     private ProgressBar dlBar;
     private ImageView ivCoverMini;
     private TextView tvSongTitleMini, tvLyricMini, tvLyric2Mini;
-    private LinearLayout waveBox;
     private View[] waveBars;
-
     private View expandedView, lifeGroup, musicGroup;
     private TextView tvTimeBig, tvDate, tvAlarm, tvBatteryBig, tvSongTitle, tvSongArtist;
     private ImageView ivCoverBig;
     private ProgressBar progress;
     private TextView notifTitle, notifText;
-    private TextView[] lyricLines;
+    private TextView lyric1, lyric2, lyric3, lyric4, lyric5;
 
     private WindowManager.LayoutParams params;
     private boolean expandedState = false, musicMode = false, downloadMode = false;
     private boolean charging = false, notifVisible = false, playing = false;
     private Song currentSong;
-    private List<LyricsParser.Line> lyrics;
+    private List<L> lyrics;
     private int lastLyricIdx = -1;
     private ValueAnimator sizeAnim;
     private int screenWidth;
     private final Handler ui = new Handler(Looper.getMainLooper());
+
     private final Runnable waveTick = new Runnable() {
         @Override public void run() {
             if (waveBars != null && playing) {
+                float d = getResources().getDisplayMetrics().density;
                 for (int i = 0; i < waveBars.length; i++) {
                     if (waveBars[i] == null) continue;
                     float h = 6f + (float)(Math.random() * 14f);
                     ViewGroup.LayoutParams lp = waveBars[i].getLayoutParams();
                     if (lp != null) {
-                        lp.height = (int)(h * getResources().getDisplayMetrics().density);
+                        lp.height = (int)(h * d);
                         waveBars[i].setLayoutParams(lp);
                     }
                 }
@@ -112,6 +111,10 @@ public class IslandService extends Service {
         }
     };
 
+    private final Runnable autoCol = new Runnable() {
+        @Override public void run() { if (expandedState) toggle(); }
+    };
+
     private final BroadcastReceiver rx = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
             String a = i.getAction();
@@ -122,7 +125,7 @@ public class IslandService extends Service {
                     if (s != null) onSong(s);
                 } else if ("com.xuanyin.app.LYRICS".equals(a)) {
                     String lrc = i.getStringExtra("lrc");
-                    lyrics = LyricsParser.parse(lrc);
+                    parseLyrics(lrc);
                     lastLyricIdx = -1;
                 } else if ("com.xuanyin.app.PLAY_STATE".equals(a)) {
                     boolean p = i.getBooleanExtra("playing", false);
@@ -159,6 +162,47 @@ public class IslandService extends Service {
         }
     };
 
+    // 极简歌词解析
+    private void parseLyrics(String lrc) {
+        lyrics = new ArrayList<L>();
+        if (lrc == null || lrc.isEmpty()) return;
+        try {
+            String[] lines = lrc.split("\n");
+            for (String raw : lines) {
+                if (raw == null) continue;
+                String line = raw.trim();
+                if (!line.startsWith("[")) continue;
+                int close = line.indexOf(']');
+                if (close <= 1) continue;
+                String stamp = line.substring(1, close);
+                String text = line.substring(close + 1).trim();
+                if (text.isEmpty()) continue;
+                int colon = stamp.indexOf(':');
+                if (colon <= 0) continue;
+                try {
+                    int min = Integer.parseInt(stamp.substring(0, colon).trim());
+                    String secStr = stamp.substring(colon + 1).trim();
+                    int dot = secStr.indexOf('.');
+                    float sec;
+                    if (dot > 0) sec = Float.parseFloat(secStr.substring(0, dot)) + Float.parseFloat("0" + secStr.substring(dot)) ;
+                    else sec = Float.parseFloat(secStr);
+                    long ms = (long)((min * 60 + sec) * 1000);
+                    lyrics.add(new L(ms, text));
+                } catch (Throwable ignored) {}
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    private int findLyricIdx(long pos) {
+        if (lyrics == null || lyrics.isEmpty()) return -1;
+        int idx = -1;
+        for (int i = 0; i < lyrics.size(); i++) {
+            if (lyrics.get(i).t <= pos) idx = i;
+            else break;
+        }
+        return idx;
+    }
+
     private void onBattery(Intent i) {
         try {
             int lv = i.getIntExtra("level", 0);
@@ -168,19 +212,17 @@ public class IslandService extends Service {
             boolean isCharging = st == 2 || st == 5;
             if (isCharging != charging) {
                 charging = isCharging;
-                if (charging) {
+                if (charging && islandMain != null) {
                     Haptic.charge(this);
-                    if (islandMain != null) {
-                        islandMain.animate().cancel();
-                        islandMain.animate().scaleX(1.06f).scaleY(1.06f).setDuration(180)
-                            .withEndAction(new Runnable() {
-                                @Override public void run() {
-                                    if (islandMain != null) islandMain.animate()
-                                        .scaleX(1f).scaleY(1f).setDuration(380)
-                                        .setInterpolator(EASE_CLOSE).start();
-                                }
-                            }).start();
-                    }
+                    islandMain.animate().cancel();
+                    islandMain.animate().scaleX(1.06f).scaleY(1.06f).setDuration(180)
+                        .withEndAction(new Runnable() {
+                            @Override public void run() {
+                                if (islandMain != null) islandMain.animate()
+                                    .scaleX(1f).scaleY(1f).setDuration(380)
+                                    .setInterpolator(EASE_CLOSE).start();
+                            }
+                        }).start();
                 }
             }
             String txt = isCharging ? "⚡" + pct + "%" : pct + "%";
@@ -256,7 +298,6 @@ public class IslandService extends Service {
             tvSongTitleMini = (TextView) root.findViewById(R.id.tv_song_title_mini);
             tvLyricMini = (TextView) root.findViewById(R.id.tv_lyric_mini);
             tvLyric2Mini = (TextView) root.findViewById(R.id.tv_lyric2_mini);
-            waveBox = (LinearLayout) root.findViewById(R.id.wave_box);
 
             expandedView = root.findViewById(R.id.island_expanded);
             lifeGroup = root.findViewById(R.id.group_life);
@@ -272,13 +313,11 @@ public class IslandService extends Service {
             notifTitle = (TextView) root.findViewById(R.id.notif_title);
             notifText = (TextView) root.findViewById(R.id.notif_text);
 
-            lyricLines = new TextView[]{
-                (TextView) root.findViewById(R.id.lyric_line1),
-                (TextView) root.findViewById(R.id.lyric_line2),
-                (TextView) root.findViewById(R.id.lyric_line3),
-                (TextView) root.findViewById(R.id.lyric_line4),
-                (TextView) root.findViewById(R.id.lyric_line5)
-            };
+            lyric1 = (TextView) root.findViewById(R.id.lyric_line1);
+            lyric2 = (TextView) root.findViewById(R.id.lyric_line2);
+            lyric3 = (TextView) root.findViewById(R.id.lyric_line3);
+            lyric4 = (TextView) root.findViewById(R.id.lyric_line4);
+            lyric5 = (TextView) root.findViewById(R.id.lyric_line5);
 
             waveBars = new View[]{
                 root.findViewById(R.id.wave1),
@@ -389,9 +428,6 @@ public class IslandService extends Service {
             }
         } catch (Throwable ignored) {}
     }
-    private final Runnable autoCol = new Runnable() {
-        @Override public void run() { if (expandedState) toggle(); }
-    };
 
     private void applyMainSize(final boolean exp, boolean animate) {
         applyMainSize(exp, animate, exp ? OPEN_DURATION : CLOSE_DURATION, exp ? EASE_OPEN : EASE_CLOSE);
@@ -578,27 +614,27 @@ public class IslandService extends Service {
                 androidx.media3.exoplayer.ExoPlayer ep = MusicService.getPlayer();
                 if (ep != null) pos = ep.getCurrentPosition();
             } catch (Throwable ignored) {}
-            int idx = LyricsParser.findIndex(lyrics, pos);
+            int idx = findLyricIdx(pos);
             if (idx == lastLyricIdx) return;
             lastLyricIdx = idx;
             if (idx < 0) return;
-            if (tvLyricMini != null) tvLyricMini.setText(lyrics.get(idx).text);
+            L cur = lyrics.get(idx);
+            if (tvLyricMini != null) tvLyricMini.setText(cur.s);
             if (tvLyric2Mini != null) {
-                if (idx + 1 < lyrics.size()) tvLyric2Mini.setText(lyrics.get(idx + 1).text);
+                if (idx + 1 < lyrics.size()) tvLyric2Mini.setText(lyrics.get(idx + 1).s);
                 else tvLyric2Mini.setText("");
             }
-            if (lyricLines != null) {
-                for (int k = -2; k <= 2; k++) {
-                    int j = idx + k;
-                    TextView v = lyricLines[k + 2];
-                    if (v == null) continue;
-                    if (j >= 0 && j < lyrics.size()) {
-                        v.setText(lyrics.get(j).text);
-                        v.setAlpha(k == 0 ? 1f : (k == -1 || k == 1 ? 0.55f : 0.3f));
-                        v.setTextSize(k == 0 ? 16f : 14f);
-                    } else {
-                        v.setText("");
-                    }
+            TextView[] lines = new TextView[]{lyric1, lyric2, lyric3, lyric4, lyric5};
+            for (int k = -2; k <= 2; k++) {
+                int j = idx + k;
+                TextView v = lines[k + 2];
+                if (v == null) continue;
+                if (j >= 0 && j < lyrics.size()) {
+                    v.setText(lyrics.get(j).s);
+                    v.setAlpha(k == 0 ? 1f : (k == -1 || k == 1 ? 0.55f : 0.3f));
+                    v.setTextSize(k == 0 ? 16f : 14f);
+                } else {
+                    v.setText("");
                 }
             }
         } catch (Throwable ignored) {}
@@ -618,8 +654,9 @@ public class IslandService extends Service {
                     if (tvCollapsedTitle != null && !musicMode && !downloadMode && !notifVisible)
                         tvCollapsedTitle.setText(df.format(n));
                     if (tvAlarm != null) {
-                        String al = AlarmHelper.text();
-                        tvAlarm.setText("未设置".equals(al) ? "未设置闹钟" : "闹钟 " + al);
+                        int h = Prefs.getInt("alarm_hour", -1);
+                        int m = Prefs.getInt("alarm_min", -1);
+                        tvAlarm.setText((h < 0 || m < 0) ? "未设置闹钟" : String.format("闹钟 %02d:%02d", h, m));
                     }
                 } catch (Throwable ignored) {}
                 tickLyrics();
