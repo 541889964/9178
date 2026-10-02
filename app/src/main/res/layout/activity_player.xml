@@ -12,8 +12,7 @@
                 android:layout_height="42dp" android:padding="10dp"
                 android:src="@android:drawable/ic_menu_revert"
                 android:background="@drawable/bg_search" />
-            <View android:layout_width="0dp" android:layout_weight="1"
-                android:layout_height="1dp" />
+            <View android:layout_width="0dp" android:layout_weight="1" android:layout_height="1dp" />
             <TextView android:id="@+id/tv_download_pct" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:layout_marginEnd="10dp"
                 android:text="0%" android:textColor="#FF6B9D"
@@ -23,8 +22,7 @@
                 android:background="@drawable/bg_search"
                 android:src="@android:drawable/stat_sys_download" android:tint="#FFFFFF" />
         </LinearLayout>
-        <FrameLayout android:layout_gravity="center"
-            android:layout_marginTop="24dp"
+        <FrameLayout android:layout_gravity="center" android:layout_marginTop="24dp"
             android:layout_width="wrap_content" android:layout_height="wrap_content">
             <com.xuanyin.app.widget.GlowRingView
                 android:id="@+id/glow_cover"
@@ -32,13 +30,15 @@
                 android:layout_gravity="center" />
             <ImageView android:id="@+id/iv_cover"
                 android:layout_width="260dp" android:layout_height="260dp"
-                android:layout_gravity="center"
-                android:scaleType="centerCrop" />
+                android:layout_gravity="center" android:scaleType="centerCrop" />
         </FrameLayout>
         <TextView android:id="@+id/tv_title" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:layout_marginTop="24dp"
             android:gravity="center" android:text="未播放" android:textColor="@color/white"
-            android:textSize="20sp" android:textStyle="bold" />
+            android:textSize="20sp" android:textStyle="bold"
+            android:maxLines="1" android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true" android:focusable="true" android:focusableInTouchMode="true" />
         <TextView android:id="@+id/tv_artist" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:layout_marginTop="6dp"
             android:gravity="center" android:text="未知歌手"
@@ -48,16 +48,20 @@
             android:layout_height="wrap_content">
             <TextView android:id="@+id/btn_prev"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:paddingHorizontal="26dp" android:paddingVertical="8dp"
+                android:paddingHorizontal="20dp" android:paddingVertical="8dp"
                 android:text="⏮" android:textColor="#FFFFFF" android:textSize="30sp" />
             <TextView android:id="@+id/btn_play"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:paddingHorizontal="26dp" android:paddingVertical="8dp"
+                android:paddingHorizontal="20dp" android:paddingVertical="8dp"
                 android:text="▶" android:textColor="#FFFFFF" android:textSize="36sp" />
             <TextView android:id="@+id/btn_next"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:paddingHorizontal="26dp" android:paddingVertical="8dp"
+                android:paddingHorizontal="20dp" android:paddingVertical="8dp"
                 android:text="⏭" android:textColor="#FFFFFF" android:textSize="30sp" />
+            <TextView android:id="@+id/btn_mode"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:paddingHorizontal="20dp" android:paddingVertical="8dp"
+                android:text="🔁" android:textColor="#FFFFFF" android:textSize="22sp" />
         </LinearLayout>
         <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_result"
             android:layout_marginTop="18dp" android:layout_width="match_parent"

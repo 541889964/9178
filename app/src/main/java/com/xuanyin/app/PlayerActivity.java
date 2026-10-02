@@ -1,5 +1,10 @@
 package com.xuanyin.app;
 import android.animation.ObjectAnimator;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
@@ -20,7 +25,6 @@ import com.xuanyin.app.util.WallpaperHelper;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
 public class PlayerActivity extends AppCompatActivity {
     private ImageView cover;
     private ObjectAnimator rotation;
@@ -28,14 +32,24 @@ public class PlayerActivity extends AppCompatActivity {
     private SongAdapter adapter;
     private boolean playing = false;
     private Song currentSong;
-
+    private TextView btnMode;
+    private final BroadcastReceiver rx = new BroadcastReceiver() {
+        @Override public void onReceive(Context c, Intent i) {
+            String a = i.getAction();
+            if (a == null) return;
+            try {
+                if ("com.xuanyin.app.MODE_CHANGED".equals(a)) {
+                    updateModeIcon(i.getIntExtra("mode", 0));
+                }
+            } catch (Throwable ignored) {}
+        }
+    };
     @Override protected void onCreate(Bundle b) {
         try { super.onCreate(b); } catch (Throwable t) { finish(); return; }
         try { setContentView(R.layout.activity_player); }
         catch (Throwable t) { finish(); return; }
-
         cover = (ImageView) findViewById(R.id.iv_cover);
-
+        btnMode = (TextView) findViewById(R.id.btn_mode);
         try {
             rotation = ObjectAnimator.ofFloat(cover, "rotation", 0f, 360f);
             rotation.setDuration(22000);
@@ -43,7 +57,6 @@ public class PlayerActivity extends AppCompatActivity {
             rotation.setInterpolator(new LinearInterpolator());
             rotation.start();
         } catch (Throwable ignored) {}
-
         try {
             RecyclerView rv = (RecyclerView) findViewById(R.id.rv_result);
             LinearLayoutManager lm = new LinearLayoutManager(this);
@@ -66,27 +79,21 @@ public class PlayerActivity extends AppCompatActivity {
             });
             rv.setAdapter(adapter);
         } catch (Throwable ignored) {}
-
-        bind(R.id.btn_back, () -> {
-            finish();
-            try { overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right); } catch (Throwable ignored) {}
-        });
-        bind(R.id.btn_prev, () -> {
-            try { startService(new android.content.Intent(this, MusicService.class)
-                .setAction(MusicService.ACTION_PREV)); } catch (Throwable ignored) {}
-        });
+        bind(R.id.btn_back, () -> { finish(); try { overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right); } catch (Throwable ignored) {} });
+        bind(R.id.btn_prev, () -> { try { startService(new Intent(this, MusicService.class).setAction(MusicService.ACTION_PREV)); } catch (Throwable ignored) {} });
         bind(R.id.btn_play, () -> {
-            try { startService(new android.content.Intent(this, MusicService.class)
-                .setAction(MusicService.ACTION_TOGGLE)); } catch (Throwable ignored) {}
-            playing = !playing;
-            updatePlayBtn();
+            try { startService(new Intent(this, MusicService.class).setAction(MusicService.ACTION_TOGGLE)); } catch (Throwable ignored) {}
+            playing = !playing; updatePlayBtn();
         });
-        bind(R.id.btn_next, () -> {
-            try { startService(new android.content.Intent(this, MusicService.class)
-                .setAction(MusicService.ACTION_NEXT)); } catch (Throwable ignored) {}
-        });
+        bind(R.id.btn_next, () -> { try { startService(new Intent(this, MusicService.class).setAction(MusicService.ACTION_NEXT)); } catch (Throwable ignored) {} });
+        bind(R.id.btn_mode, () -> { try { startService(new Intent(this, MusicService.class).setAction(MusicService.ACTION_CYCLE_MODE)); } catch (Throwable ignored) {} });
         bind(R.id.btn_download, this::download);
-
+        updateModeIcon(MusicService.getMode());
+        IntentFilter f = new IntentFilter("com.xuanyin.app.MODE_CHANGED");
+        try {
+            if (Build.VERSION.SDK_INT >= 33) registerReceiver(rx, f, Context.RECEIVER_NOT_EXPORTED);
+            else registerReceiver(rx, f);
+        } catch (Throwable ignored) {}
         if ("SEARCH".equals(getIntent().getAction())) {
             String k = getIntent().getStringExtra("keyword");
             if (k != null) {
@@ -98,19 +105,19 @@ public class PlayerActivity extends AppCompatActivity {
             }
         }
     }
-
+    private void updateModeIcon(int m) {
+        if (btnMode == null) return;
+        if (m == 0) btnMode.setText("🔁");
+        else if (m == 1) btnMode.setText("🔂");
+        else btnMode.setText("🔀");
+    }
     private void bind(int id, Runnable r) {
         try {
             View v = findViewById(id);
             if (v == null) return;
-            v.setOnClickListener(x -> {
-                Haptic.tap(v);
-                Anim.press(v);
-                r.run();
-            });
+            v.setOnClickListener(x -> { Haptic.tap(v); Anim.press(v); r.run(); });
         } catch (Throwable ignored) {}
     }
-
     private void download() {
         Song s = currentSong != null ? currentSong : MusicService.getCurrent();
         if (s == null) { Toast.makeText(this, "请先选一首歌", Toast.LENGTH_SHORT).show(); return; }
@@ -123,10 +130,8 @@ public class PlayerActivity extends AppCompatActivity {
             @Override public void onProgress(int p) { if (tvPct != null) tvPct.setText(p + "%"); }
             @Override public void onDone(File f) {
                 Haptic.done(PlayerActivity.this);
-                if (tvPct != null) {
-                    tvPct.setText("✓ 已保存");
-                    tvPct.postDelayed(() -> tvPct.setVisibility(View.GONE), 2500);
-                }
+                if (tvPct != null) { tvPct.setText("✓ 已保存");
+                    tvPct.postDelayed(() -> tvPct.setVisibility(View.GONE), 2500); }
                 Toast.makeText(PlayerActivity.this, "已保存到 " + f.getParent(), Toast.LENGTH_LONG).show();
             }
             @Override public void onError(String m) {
@@ -136,16 +141,12 @@ public class PlayerActivity extends AppCompatActivity {
             }
         });
     }
-
     private void updatePlayBtn() {
-        try {
-            TextView p = (TextView) findViewById(R.id.btn_play);
-            if (p != null) p.setText(playing ? "⏸" : "▶");
-        } catch (Throwable ignored) {}
+        try { TextView p = (TextView) findViewById(R.id.btn_play); if (p != null) p.setText(playing ? "⏸" : "▶"); } catch (Throwable ignored) {}
     }
-
     @Override protected void onDestroy() {
         super.onDestroy();
         if (rotation != null) rotation.cancel();
+        try { unregisterReceiver(rx); } catch (Throwable ignored) {}
     }
 }

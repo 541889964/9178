@@ -17,15 +17,18 @@ public class MusicService extends Service {
     public static final String ACTION_TOGGLE = "com.xuanyin.app.TOGGLE";
     public static final String ACTION_NEXT = "com.xuanyin.app.NEXT";
     public static final String ACTION_PREV = "com.xuanyin.app.PREV";
+    public static final String ACTION_CYCLE_MODE = "com.xuanyin.app.CYCLE_MODE";
     public static final String A_SONG_CHANGED = "com.xuanyin.app.SONG_CHANGED";
     public static final String A_PLAY_STATE = "com.xuanyin.app.PLAY_STATE";
     public static final String A_LYRICS = "com.xuanyin.app.LYRICS";
+    public static final String A_MODE_CHANGED = "com.xuanyin.app.MODE_CHANGED";
     private static final String CH = "music_ch";
     private static final int NID = 1002;
     private static ExoPlayer player;
     private static Song currentSong;
     private static List<Song> playlist = new ArrayList<>();
     private static int currentIndex = -1;
+    private static int mode = 0; // 0=顺序 1=单曲 2=随机
     public static void playList(Context c, List<Song> list, int index) {
         if (list == null || list.isEmpty()) return;
         playlist = new ArrayList<>(list);
@@ -37,13 +40,34 @@ public class MusicService extends Service {
     }
     public static void next(Context c) {
         if (playlist.isEmpty()) return;
-        currentIndex = (currentIndex + 1) % playlist.size();
+        if (mode == 1) { playIndex(c, currentIndex); return; }
+        if (mode == 2) {
+            int rnd = currentIndex;
+            if (playlist.size() > 1) { while (rnd == currentIndex) rnd = (int)(Math.random() * playlist.size()); }
+            currentIndex = rnd;
+        } else {
+            currentIndex = (currentIndex + 1) % playlist.size();
+        }
         playIndex(c, currentIndex);
     }
     public static void prev(Context c) {
         if (playlist.isEmpty()) return;
+        if (mode == 1) { playIndex(c, currentIndex); return; }
+        if (mode == 2) { next(c); return; }
         currentIndex = (currentIndex - 1 + playlist.size()) % playlist.size();
         playIndex(c, currentIndex);
+    }
+    public static void cycleMode(Context c) {
+        mode = (mode + 1) % 3;
+        sendMode(c);
+    }
+    private static void sendMode(Context c) {
+        try {
+            Intent i = new Intent(A_MODE_CHANGED);
+            i.putExtra("mode", mode);
+            i.setPackage(c.getPackageName());
+            c.sendBroadcast(i);
+        } catch (Throwable ignored) {}
     }
     private static void playIndex(Context c, int i) {
         if (i < 0 || i >= playlist.size()) return;
@@ -56,7 +80,7 @@ public class MusicService extends Service {
     }
     public static Song getCurrent() { return currentSong; }
     public static ExoPlayer getPlayer() { return player; }
-    public static List<Song> getPlaylist() { return playlist; }
+    public static int getMode() { return mode; }
     @Override public void onCreate() {
         super.onCreate();
         player = new ExoPlayer.Builder(this).build();
@@ -90,10 +114,6 @@ public class MusicService extends Service {
                                 li.putExtra("lrc", lrc);
                                 sendBroadcast(li);
                             });
-                        } else {
-                            Intent li = new Intent(A_LYRICS);
-                            li.putExtra("lrc", "");
-                            sendBroadcast(li);
                         }
                     }
                     break;
@@ -101,6 +121,7 @@ public class MusicService extends Service {
                 case ACTION_TOGGLE: player.setPlayWhenReady(!player.getPlayWhenReady()); break;
                 case ACTION_NEXT: next(this); break;
                 case ACTION_PREV: prev(this); break;
+                case ACTION_CYCLE_MODE: cycleMode(this); break;
             }
         }
         return START_STICKY;
