@@ -41,6 +41,7 @@ public class MusicService extends Service {
                         player.prepare(); player.play();
                         updateNotification();
                         sendBroadcast(new Intent("com.xuanyin.app.SONG_CHANGED").putExtra("song", s));
+                        sendBroadcast(new Intent("com.xuanyin.app.PLAY_STATE").putExtra("playing", true));
                     }
                     break;
                 }

@@ -21,6 +21,7 @@ public class PlayerActivity extends AppCompatActivity {
     private ObjectAnimator rotation, pulseAnim;
     private final List<Song> list = new ArrayList<>();
     private SongAdapter adapter;
+    private boolean playing = false;
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_player);
@@ -46,19 +47,49 @@ public class PlayerActivity extends AppCompatActivity {
             ((TextView) findViewById(R.id.tv_title)).setText(s.title);
             ((TextView) findViewById(R.id.tv_artist)).setText(s.displayArtist());
             WallpaperHelper.loadCover(this, cover, s.id);
+            playing = true;
+            updatePlayBtn();
         });
         rv.setAdapter(adapter);
+
+        findViewById(R.id.btn_back).setOnClickListener(v -> {
+            v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(70)
+                .withEndAction(this::finish).start();
+        });
+        findViewById(R.id.btn_prev).setOnClickListener(v -> {
+            v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(70)
+                .withEndAction(() -> v.animate().scaleX(1f).scaleY(1f).setDuration(140).start()).start();
+            startService(new android.content.Intent(this, MusicService.class)
+                .setAction(MusicService.ACTION_PREV));
+        });
+        findViewById(R.id.btn_play).setOnClickListener(v -> {
+            v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(70)
+                .withEndAction(() -> v.animate().scaleX(1f).scaleY(1f).setDuration(140).start()).start();
+            startService(new android.content.Intent(this, MusicService.class)
+                .setAction(MusicService.ACTION_TOGGLE));
+            playing = !playing;
+            updatePlayBtn();
+        });
+        findViewById(R.id.btn_next).setOnClickListener(v -> {
+            v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(70)
+                .withEndAction(() -> v.animate().scaleX(1f).scaleY(1f).setDuration(140).start()).start();
+            startService(new android.content.Intent(this, MusicService.class)
+                .setAction(MusicService.ACTION_NEXT));
+        });
+
         if ("SEARCH".equals(getIntent().getAction())) {
             String k = getIntent().getStringExtra("keyword");
             NeteaseApi.search(k, songs -> runOnUiThread(() -> {
                 list.clear(); list.addAll(songs); adapter.notifyDataSetChanged();
             }));
         }
-        findViewById(R.id.btn_back).setOnClickListener(v -> {
-            v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(70)
-                .withEndAction(this::finish).start();
-        });
     }
+
+    private void updatePlayBtn() {
+        TextView p = findViewById(R.id.btn_play);
+        if (p != null) p.setText(playing ? "⏸" : "▶");
+    }
+
     @Override protected void onDestroy() {
         super.onDestroy();
         if (rotation != null) rotation.cancel();

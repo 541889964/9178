@@ -4,23 +4,51 @@
     android:background="@color/bg_deep" android:fillViewport="true">
     <LinearLayout android:orientation="vertical" android:padding="20dp"
         android:layout_width="match_parent" android:layout_height="wrap_content">
+
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="玄音设置" android:textColor="@color/white"
             android:textSize="22sp" android:textStyle="bold" />
+
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:layout_marginTop="24dp" android:text="折叠宽度"
             android:textColor="@color/sub_text" android:textSize="13sp" />
-        <SeekBar android:id="@+id/sb_collapsed" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <SeekBar android:id="@+id/sb_collapsed"
+            android:max="65"
+            android:layout_width="match_parent" android:layout_height="wrap_content" />
         <TextView android:id="@+id/tv_collapsed_val" android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:text="62%"
             android:textColor="@color/white" android:textSize="13sp" />
+
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_marginTop="20dp" android:text="折叠高度"
+            android:layout_marginTop="16dp" android:text="折叠高度"
             android:textColor="@color/sub_text" android:textSize="13sp" />
-        <SeekBar android:id="@+id/sb_height" android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <SeekBar android:id="@+id/sb_height"
+            android:max="36"
+            android:layout_width="match_parent" android:layout_height="wrap_content" />
         <TextView android:id="@+id/tv_height_val" android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:text="44dp"
             android:textColor="@color/white" android:textSize="13sp" />
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:text="展开宽度"
+            android:textColor="@color/sub_text" android:textSize="13sp" />
+        <SeekBar android:id="@+id/sb_expanded_w"
+            android:max="40"
+            android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <TextView android:id="@+id/tv_expanded_w_val" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="94%"
+            android:textColor="@color/white" android:textSize="13sp" />
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:text="展开高度"
+            android:textColor="@color/sub_text" android:textSize="13sp" />
+        <SeekBar android:id="@+id/sb_expanded_h"
+            android:max="380"
+            android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <TextView android:id="@+id/tv_expanded_h_val" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="260dp"
+            android:textColor="@color/white" android:textSize="13sp" />
+
         <TextView android:id="@+id/btn_notify_access" android:layout_marginTop="30dp"
             android:padding="16dp" android:background="@drawable/bg_card"
             android:layout_width="match_parent" android:layout_height="wrap_content"

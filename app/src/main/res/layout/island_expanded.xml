@@ -1,41 +1,197 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/island_expanded" android:orientation="vertical"
-    android:padding="22dp" android:visibility="gone"
-    android:layout_width="match_parent" android:layout_height="wrap_content">
-    <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
-        android:layout_width="match_parent" android:layout_height="wrap_content">
-        <FrameLayout android:layout_width="48dp" android:layout_height="48dp">
-            <com.xuanyin.app.widget.IslandPulseView android:id="@+id/island_pulse"
-                android:layout_width="76dp" android:layout_height="76dp"
-                android:layout_gravity="center" />
-            <ImageView android:id="@+id/iv_cover" android:layout_width="42dp"
-                android:layout_height="42dp" android:layout_gravity="center"
-                android:background="@drawable/bg_gradient_button" android:scaleType="centerCrop" />
-        </FrameLayout>
-        <LinearLayout android:orientation="vertical" android:layout_marginStart="14dp"
-            android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content">
-            <TextView android:id="@+id/tv_time" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:text="14:30"
-                android:textColor="@color/white" android:textSize="28sp" android:textStyle="bold" />
-            <TextView android:id="@+id/tv_date" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:layout_marginTop="4dp"
-                android:text="10月2日 周四" android:textColor="@color/sub_text" android:textSize="13sp" />
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/island_expanded"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- ===== 生活模式 ===== -->
+    <LinearLayout
+        android:id="@+id/group_life"
+        android:orientation="vertical"
+        android:padding="22dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/tv_time_big"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="14:30"
+            android:textColor="#FFFFFF"
+            android:textSize="52sp"
+            android:textStyle="bold"
+            android:letterSpacing="-0.03" />
+
+        <TextView
+            android:id="@+id/tv_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="2026年10月2日 星期四"
+            android:textColor="#C9BFF5"
+            android:textSize="14sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="16dp"
+            android:background="#22FFFFFF" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⏰"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/tv_alarm"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                android:layout_height="wrap_content"
+                android:text="未设置闹钟"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/tv_battery_big"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="100%"
+                android:textColor="#4CD964"
+                android:textSize="15sp"
+                android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
-    <FrameLayout android:layout_marginTop="18dp" android:layout_width="match_parent" android:layout_height="4dp">
-        <SeekBar android:id="@+id/island_seek" android:layout_width="match_parent" android:layout_height="match_parent" />
-        <com.xuanyin.app.widget.IslandProgressGlowView android:id="@+id/island_progress_glow"
-            android:layout_width="match_parent" android:layout_height="match_parent"
-            android:clickable="false" android:focusable="false" />
-    </FrameLayout>
-    <LinearLayout android:orientation="horizontal" android:gravity="center"
-        android:layout_marginTop="18dp" android:layout_width="match_parent" android:layout_height="wrap_content">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="⏮" android:textSize="24sp" android:textColor="@color/white" android:paddingHorizontal="24dp" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="▶" android:textSize="30sp" android:textColor="@color/white" android:paddingHorizontal="24dp" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="⏭" android:textSize="24sp" android:textColor="@color/white" android:paddingHorizontal="24dp" />
+
+    <!-- ===== 音乐模式 ===== -->
+    <LinearLayout
+        android:id="@+id/group_music"
+        android:orientation="vertical"
+        android:padding="22dp"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- 顶部：封面 + 标题 -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.xuanyin.app.widget.IslandPulseView
+                android:layout_width="60dp"
+                android:layout_height="60dp" />
+
+            <ImageView
+                android:id="@+id/iv_cover_big"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:layout_marginStart="-56dp"
+                android:scaleType="centerCrop"
+                android:background="@drawable/bg_gradient_button" />
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_marginStart="14dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/tv_song_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="未播放"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <TextView
+                    android:id="@+id/tv_song_artist"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="未知歌手"
+                    android:textColor="#C9BFF5"
+                    android:textSize="13sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 歌词区 -->
+        <TextView
+            android:id="@+id/tv_lyric"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="14dp"
+            android:gravity="center"
+            android:text="♪"
+            android:textColor="#C9BFF5"
+            android:textSize="14sp"
+            android:lineSpacingMultiplier="1.4"
+            android:maxLines="4"
+            android:ellipsize="end" />
+
+        <!-- 进度 -->
+        <ProgressBar
+            android:id="@+id/progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_marginTop="10dp"
+            android:max="100"
+            android:progress="30" />
+
+        <!-- 控制 -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/btn_prev"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="22dp"
+                android:paddingVertical="6dp"
+                android:text="⏮"
+                android:textColor="#FFFFFF"
+                android:textSize="26sp" />
+
+            <TextView
+                android:id="@+id/btn_play"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="22dp"
+                android:paddingVertical="6dp"
+                android:text="⏸"
+                android:textColor="#FFFFFF"
+                android:textSize="30sp" />
+
+            <TextView
+                android:id="@+id/btn_next"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="22dp"
+                android:paddingVertical="6dp"
+                android:text="⏭"
+                android:textColor="#FFFFFF"
+                android:textSize="26sp" />
+        </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</FrameLayout>
