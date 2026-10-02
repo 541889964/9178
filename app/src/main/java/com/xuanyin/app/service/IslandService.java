@@ -17,46 +17,62 @@ import androidx.core.app.NotificationCompat;
 import com.xuanyin.app.R;
 import com.xuanyin.app.model.Song;
 import com.xuanyin.app.util.*;
+import com.xuanyin.app.widget.ChargingEffectView;
 import com.xuanyin.app.widget.IslandBackdropView;
-import com.xuanyin.app.widget.IslandPulseView;
+import com.xuanyin.app.widget.LyricLineView;
+import com.xuanyin.app.widget.WaveformView;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+
 public class IslandService extends Service {
     private static final String CH = "island_ch";
     private static final int NID = 1001;
     private static final long OPEN_DURATION = 1100L;
     private static final long CLOSE_DURATION = 950L;
+    private static final long IDLE_TIMEOUT = 20000L;
     private static final Interpolator EASE_OPEN = new PathInterpolator(0.16f, 1f, 0.3f, 1f);
     private static final Interpolator EASE_CLOSE = new PathInterpolator(0.4f, 0f, 0.6f, 1f);
+
     private WindowManager wm;
     private FrameLayout root;
     private View islandMain;
     private FrameLayout notifCard;
     private IslandBackdropView backdrop;
+    private ChargingEffectView chargingFx;
     private View collapsedView, collapsedLife, collapsedMusic, collapsedDl;
     private TextView tvTimeMini, tvBatteryMini, tvCollapsedTitle, tvDlTitle, tvDlPct;
     private ProgressBar dlBar;
     private ImageView ivCoverMini;
-    private IslandPulseView pulseMini;
+    private WaveformView waveMini;
     private View expandedView, lifeGroup, musicGroup;
     private TextView tvTimeBig, tvDate, tvAlarm, tvBatteryBig, tvSongTitle, tvSongArtist, tvLyric;
+    private TextView tvLyricMini, tvLyric2Mini, tvSongTitleMini;
+    private LyricLineView[] lyricLines;
     private ImageView ivCoverBig;
     private ProgressBar progress;
     private TextView notifTitle, notifText;
+
     private WindowManager.LayoutParams params;
     private boolean expandedState = false, musicMode = false, downloadMode = false;
     private boolean charging = false, notifVisible = false;
     private Song currentSong;
     private List<LyricsParser.Line> lyrics;
     private int lastLyricIdx = -1;
-    private TextView tvLyricMini;
-    private TextView tvLyric2Mini;
-    private TextView tvSongTitleMini;
-    private LyricLineView[] lyricLines;
     private ValueAnimator sizeAnim;
     private int screenWidth;
     private final Handler ui = new Handler(Looper.getMainLooper());
+
+    private final Runnable idleSwitch = () -> {
+        try {
+            if (!musicMode) return;
+            musicMode = false;
+            setModeView();
+            if (backdrop != null) backdrop.setMode(charging ? 2 : 0);
+        } catch (Throwable ignored) {}
+    };
+
     private final BroadcastReceiver rx = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
             String a = i.getAction();
@@ -67,11 +83,25 @@ public class IslandService extends Service {
                         Song s = (Song) i.getSerializableExtra("song");
                         if (s != null) onSong(s);
                         break;
+                    case "com.xuanyin.app.LYRICS":
+                        String lrc = i.getStringExtra("lrc");
+                        lyrics = LyricsParser.parse(lrc);
+                        lastLyricIdx = -1;
+                        break;
                     case "com.xuanyin.app.PLAY_STATE":
                         boolean p = i.getBooleanExtra("playing", false);
-                        if (pulseMini != null) pulseMini.setPulsing(p);
+                        if (waveMini != null) waveMini.setActive(p);
                         View bp = root == null ? null : root.findViewById(R.id.btn_play);
                         if (bp instanceof TextView) ((TextView) bp).setText(p ? "⏸" : "▶");
+                        if (p) {
+                            musicMode = true;
+                            setModeView();
+                            ui.removeCallbacks(idleSwitch);
+                            if (backdrop != null) backdrop.setMode(charging ? 2 : 1);
+                        } else {
+                            ui.removeCallbacks(idleSwitch);
+                            ui.postDelayed(idleSwitch, IDLE_TIMEOUT);
+                        }
                         break;
                     case "com.xuanyin.app.NOTIFY":
                         showNotify(i.getStringExtra("title"), i.getStringExtra("text"));
@@ -81,16 +111,12 @@ public class IslandService extends Service {
                     case "com.xuanyin.app.DL_PROGRESS": onDlProg(i.getStringExtra("title"), i.getIntExtra("percent", 0)); break;
                     case "com.xuanyin.app.DL_DONE": onDlDone(); break;
                     case "com.xuanyin.app.DL_ERROR": onDlErr(); break;
-                    case "com.xuanyin.app.LYRICS":
-                        String lrc = i.getStringExtra("lrc");
-                        lyrics = LyricsParser.parse(lrc);
-                        lastLyricIdx = -1;
-                        break;
                     case Intent.ACTION_BATTERY_CHANGED: onBattery(i); break;
                 }
             } catch (Throwable ignored) {}
         }
     };
+
     private void onBattery(Intent i) {
         int lv = i.getIntExtra("level", 0);
         int sc = i.getIntExtra("scale", 100);
@@ -99,6 +125,7 @@ public class IslandService extends Service {
         boolean isCharging = st == 2 || st == 5;
         if (isCharging != charging) {
             charging = isCharging;
+            if (chargingFx != null) chargingFx.setActive(isCharging);
             if (charging) {
                 Haptic.charge(this);
                 if (backdrop != null) { backdrop.setMode(2); backdrop.setChargingBreath(true); }
@@ -125,12 +152,14 @@ public class IslandService extends Service {
             .withEndAction(() -> islandMain.animate().scaleX(1f).scaleY(1f)
                 .setDuration(380).setInterpolator(EASE_CLOSE).start()).start();
     }
+
     @Override public void onCreate() {
         super.onCreate();
         screenWidth = getResources().getDisplayMetrics().widthPixels;
         startFg(); initWin(); startClock();
         IntentFilter f = new IntentFilter();
         f.addAction("com.xuanyin.app.SONG_CHANGED");
+        f.addAction("com.xuanyin.app.LYRICS");
         f.addAction("com.xuanyin.app.PLAY_STATE");
         f.addAction("com.xuanyin.app.NOTIFY");
         f.addAction("com.xuanyin.app.ALARM");
@@ -138,13 +167,13 @@ public class IslandService extends Service {
         f.addAction("com.xuanyin.app.DL_PROGRESS");
         f.addAction("com.xuanyin.app.DL_DONE");
         f.addAction("com.xuanyin.app.DL_ERROR");
-        f.addAction("com.xuanyin.app.LYRICS");
         f.addAction(Intent.ACTION_BATTERY_CHANGED);
         try {
             if (Build.VERSION.SDK_INT >= 33) registerReceiver(rx, f, Context.RECEIVER_NOT_EXPORTED);
             else registerReceiver(rx, f);
         } catch (Throwable ignored) {}
     }
+
     private void startFg() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -160,6 +189,7 @@ public class IslandService extends Service {
             startForeground(NID, n);
         } catch (Throwable ignored) {}
     }
+
     private void initWin() {
         wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         try { root = (FrameLayout) LayoutInflater.from(this).inflate(R.layout.island_root, null); }
@@ -167,6 +197,7 @@ public class IslandService extends Service {
         islandMain = root.findViewById(R.id.island_main);
         notifCard = root.findViewById(R.id.island_notif_card);
         backdrop = root.findViewById(R.id.island_backdrop);
+        try { chargingFx = root.findViewById(R.id.charging_effect); } catch (Throwable ignored) {}
         collapsedView = root.findViewById(R.id.island_collapsed);
         collapsedLife = root.findViewById(R.id.group_life_mini);
         collapsedMusic = root.findViewById(R.id.group_music_mini);
@@ -178,7 +209,10 @@ public class IslandService extends Service {
         tvDlPct = root.findViewById(R.id.tv_dl_pct_mini);
         dlBar = root.findViewById(R.id.dl_bar_mini);
         ivCoverMini = root.findViewById(R.id.iv_cover_mini);
-        pulseMini = root.findViewById(R.id.pulse_mini);
+        waveMini = root.findViewById(R.id.waveform_mini);
+        tvLyricMini = root.findViewById(R.id.tv_lyric_mini);
+        tvLyric2Mini = root.findViewById(R.id.tv_lyric2_mini);
+        tvSongTitleMini = root.findViewById(R.id.tv_song_title_mini);
         expandedView = root.findViewById(R.id.island_expanded);
         lifeGroup = root.findViewById(R.id.group_life);
         musicGroup = root.findViewById(R.id.group_music);
@@ -193,6 +227,15 @@ public class IslandService extends Service {
         progress = root.findViewById(R.id.progress);
         notifTitle = root.findViewById(R.id.notif_title);
         notifText = root.findViewById(R.id.notif_text);
+        try {
+            lyricLines = new LyricLineView[]{
+                root.findViewById(R.id.lyric_line1),
+                root.findViewById(R.id.lyric_line2),
+                root.findViewById(R.id.lyric_line3),
+                root.findViewById(R.id.lyric_line4),
+                root.findViewById(R.id.lyric_line5)
+            };
+        } catch (Throwable ignored) {}
         View bp = root.findViewById(R.id.btn_prev);
         View bpl = root.findViewById(R.id.btn_play);
         View bn = root.findViewById(R.id.btn_next);
@@ -216,6 +259,7 @@ public class IslandService extends Service {
         applyMainSize(false, false);
         if (backdrop != null) backdrop.setMode(0);
     }
+
     private void setModeView() {
         if (collapsedLife == null) return;
         boolean dl = downloadMode;
@@ -227,6 +271,7 @@ public class IslandService extends Service {
         if (lifeGroup != null) lifeGroup.setVisibility(mu || dl ? View.GONE : View.VISIBLE);
         if (musicGroup != null) musicGroup.setVisibility(mu ? View.VISIBLE : View.GONE);
     }
+
     private void toggle() {
         if (notifVisible) { hideNotifyCard(); return; }
         expandedState = !expandedState;
@@ -270,6 +315,7 @@ public class IslandService extends Service {
         }
     }
     private final Runnable autoCol = () -> { if (expandedState) toggle(); };
+
     private void applyMainSize(final boolean exp, boolean animate) {
         applyMainSize(exp, animate, exp ? OPEN_DURATION : CLOSE_DURATION, exp ? EASE_OPEN : EASE_CLOSE);
     }
@@ -311,6 +357,7 @@ public class IslandService extends Service {
         islandMain.setClipToOutline(true);
         if (backdrop != null) backdrop.setCornerRadius(rad);
     }
+
     private void showNotify(String title, String text) {
         if (notifCard == null || islandMain == null) return;
         if (notifTitle != null) notifTitle.setText(title == null ? "通知" : title);
@@ -386,19 +433,21 @@ public class IslandService extends Service {
         });
         anim.start();
     }
+
     private void onSong(Song s) {
         currentSong = s; musicMode = true; downloadMode = false;
         setModeView();
         if (tvCollapsedTitle != null) tvCollapsedTitle.setText(s.title);
         if (tvSongTitle != null) tvSongTitle.setText(s.title);
         if (tvSongArtist != null) tvSongArtist.setText(s.displayArtist());
+        if (tvSongTitleMini != null) tvSongTitleMini.setText(s.title);
         if (ivCoverMini != null) WallpaperHelper.loadCover(this, ivCoverMini, s.id);
         if (ivCoverBig != null) WallpaperHelper.loadCover(this, ivCoverBig, s.id);
-        if (pulseMini != null) pulseMini.setPulsing(true);
+        if (waveMini != null) waveMini.setActive(true);
         if (tvLyric != null) tvLyric.setText(s.title + "\n" + s.displayArtist());
-        if (tvSongTitleMini != null) tvSongTitleMini.setText(s.title);
         lyrics = null;
         lastLyricIdx = -1;
+        ui.removeCallbacks(idleSwitch);
         if (backdrop != null) backdrop.setMode(charging ? 2 : 1);
     }
     private void onDlStart(String t) {
@@ -439,34 +488,13 @@ public class IslandService extends Service {
         ui.postDelayed(() -> { if (backdrop != null)
             backdrop.setMode(charging ? 2 : (musicMode ? 1 : 0)); }, 5000);
     }
-    private void startClock() {
-        final SimpleDateFormat tf = new SimpleDateFormat("HH:mm", Locale.getDefault());
-        final SimpleDateFormat df = new SimpleDateFormat("M月d日 EEE", Locale.CHINA);
-        final SimpleDateFormat dfL = new SimpleDateFormat("yyyy年M月d日 EEEE", Locale.CHINA);
-        ui.post(new Runnable() {
-            @Override public void run() {
-                try {
-                    Date n = new Date();
-                    if (tvTimeMini != null) tvTimeMini.setText(tf.format(n));
-                    if (tvTimeBig != null) tvTimeBig.setText(tf.format(n));
-                    if (tvDate != null) tvDate.setText(dfL.format(n));
-                    if (tvCollapsedTitle != null && !musicMode && !downloadMode && !notifVisible)
-                        tvCollapsedTitle.setText(df.format(n));
-                    if (tvAlarm != null) {
-                        String al = AlarmHelper.text();
-                        tvAlarm.setText("未设置".equals(al) ? "未设置闹钟" : "闹钟 " + al);
-                    }
-                } catch (Throwable ignored) {}
-                tickLyrics();
-                ui.postDelayed(this, 200);
-            }
-        });
-    }
+
     private void tickLyrics() {
         try {
             if (!musicMode || lyrics == null || lyrics.isEmpty()) return;
             long pos = 0;
-            try { androidx.media3.exoplayer.ExoPlayer ep = MusicService.getPlayer();
+            try {
+                androidx.media3.exoplayer.ExoPlayer ep = MusicService.getPlayer();
                 if (ep != null) pos = ep.getCurrentPosition();
             } catch (Throwable ignored) {}
             int idx = LyricsParser.findIndex(lyrics, pos);
@@ -497,6 +525,31 @@ public class IslandService extends Service {
             }
         } catch (Throwable ignored) {}
     }
+
+    private void startClock() {
+        final SimpleDateFormat tf = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        final SimpleDateFormat df = new SimpleDateFormat("M月d日 EEE", Locale.CHINA);
+        final SimpleDateFormat dfL = new SimpleDateFormat("yyyy年M月d日 EEEE", Locale.CHINA);
+        ui.post(new Runnable() {
+            @Override public void run() {
+                try {
+                    Date n = new Date();
+                    if (tvTimeMini != null) tvTimeMini.setText(tf.format(n));
+                    if (tvTimeBig != null) tvTimeBig.setText(tf.format(n));
+                    if (tvDate != null) tvDate.setText(dfL.format(n));
+                    if (tvCollapsedTitle != null && !musicMode && !downloadMode && !notifVisible)
+                        tvCollapsedTitle.setText(df.format(n));
+                    if (tvAlarm != null) {
+                        String al = AlarmHelper.text();
+                        tvAlarm.setText("未设置".equals(al) ? "未设置闹钟" : "闹钟 " + al);
+                    }
+                } catch (Throwable ignored) {}
+                tickLyrics();
+                ui.postDelayed(this, 200);
+            }
+        });
+    }
+
     @Override public void onConfigurationChanged(Configuration c) {
         super.onConfigurationChanged(c);
         screenWidth = getResources().getDisplayMetrics().widthPixels;
@@ -513,6 +566,7 @@ public class IslandService extends Service {
     @Override public void onDestroy() {
         super.onDestroy();
         if (sizeAnim != null) sizeAnim.cancel();
+        ui.removeCallbacks(idleSwitch);
         try { unregisterReceiver(rx); } catch (Throwable ignored) {}
         if (root != null && wm != null) { try { wm.removeView(root); } catch (Throwable ignored) {} root = null; }
     }

@@ -33,8 +33,7 @@
             <ImageView android:id="@+id/iv_cover"
                 android:layout_width="260dp" android:layout_height="260dp"
                 android:layout_gravity="center"
-                android:background="@drawable/bg_gradient_button"
-                android:scaleType="centerCrop" android:elevation="14dp" />
+                android:scaleType="centerCrop" />
         </FrameLayout>
         <TextView android:id="@+id/tv_title" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:layout_marginTop="24dp"

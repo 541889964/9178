@@ -19,6 +19,11 @@ public class WallpaperHelper {
             .apply(new RequestOptions().transform(new CircleCrop()).diskCacheStrategy(DiskCacheStrategy.ALL))
             .into(iv);
     }
+    public static void loadCoverRect(Context c, ImageView iv, long id) {
+        Glide.with(c).load(coverFor(id))
+            .apply(new RequestOptions().centerCrop().diskCacheStrategy(DiskCacheStrategy.ALL))
+            .into(iv);
+    }
     public static void loadBackground(Context c, ImageView iv) {
         int idx = Prefs.getInt("bg_index", 0) % RES.length;
         Glide.with(c).load(RES[idx])
