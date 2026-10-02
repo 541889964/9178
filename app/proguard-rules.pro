@@ -1,0 +1,2 @@
+-keep class com.xuanyin.app.** { *; }
+-keep class androidx.media3.** { *; }

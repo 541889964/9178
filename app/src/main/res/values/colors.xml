@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_deep">#0A0817</color>
+    <color name="bg_surface">#151329</color>
+    <color name="pink">#FF6B9D</color>
+    <color name="purple">#9B6BFF</color>
+    <color name="white">#FFFFFF</color>
+    <color name="sub_text">#C9BFF5</color>
+    <color name="weak_text">#8F86B8</color>
+</resources>

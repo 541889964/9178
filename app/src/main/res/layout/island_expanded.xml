@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/island_expanded" android:orientation="vertical"
+    android:padding="22dp" android:visibility="gone"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
+    <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
+        android:layout_width="match_parent" android:layout_height="wrap_content">
+        <FrameLayout android:layout_width="48dp" android:layout_height="48dp">
+            <com.xuanyin.app.widget.IslandPulseView android:id="@+id/island_pulse"
+                android:layout_width="76dp" android:layout_height="76dp"
+                android:layout_gravity="center" />
+            <ImageView android:id="@+id/iv_cover" android:layout_width="42dp"
+                android:layout_height="42dp" android:layout_gravity="center"
+                android:background="@drawable/bg_gradient_button" android:scaleType="centerCrop" />
+        </FrameLayout>
+        <LinearLayout android:orientation="vertical" android:layout_marginStart="14dp"
+            android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content">
+            <TextView android:id="@+id/tv_time" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="14:30"
+                android:textColor="@color/white" android:textSize="28sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tv_date" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                android:text="10月2日 周四" android:textColor="@color/sub_text" android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+    <FrameLayout android:layout_marginTop="18dp" android:layout_width="match_parent" android:layout_height="4dp">
+        <SeekBar android:id="@+id/island_seek" android:layout_width="match_parent" android:layout_height="match_parent" />
+        <com.xuanyin.app.widget.IslandProgressGlowView android:id="@+id/island_progress_glow"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:clickable="false" android:focusable="false" />
+    </FrameLayout>
+    <LinearLayout android:orientation="horizontal" android:gravity="center"
+        android:layout_marginTop="18dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="⏮" android:textSize="24sp" android:textColor="@color/white" android:paddingHorizontal="24dp" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="▶" android:textSize="30sp" android:textColor="@color/white" android:paddingHorizontal="24dp" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="⏭" android:textSize="24sp" android:textColor="@color/white" android:paddingHorizontal="24dp" />
+    </LinearLayout>
+</LinearLayout>
