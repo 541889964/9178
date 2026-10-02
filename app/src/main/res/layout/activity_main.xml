@@ -4,10 +4,10 @@
     android:background="@color/bg_deep">
     <ImageView android:id="@+id/iv_bg" android:layout_width="match_parent"
         android:layout_height="match_parent" android:scaleType="centerCrop" android:alpha="0.30" />
-    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent"
-        android:fillViewport="true" android:overScrollMode="ifContentScrolls">
-        <LinearLayout android:orientation="vertical" android:padding="20dp"
-            android:layout_width="match_parent" android:layout_height="wrap_content">
+    <LinearLayout android:orientation="vertical"
+        android:layout_width="match_parent" android:layout_height="match_parent">
+        <LinearLayout android:orientation="vertical" android:paddingHorizontal="20dp"
+            android:paddingTop="20dp" android:layout_width="match_parent" android:layout_height="wrap_content">
             <LinearLayout android:id="@+id/card_greet" android:orientation="vertical"
                 android:padding="22dp" android:background="@drawable/bg_card"
                 android:layout_width="match_parent" android:layout_height="wrap_content">
@@ -24,54 +24,102 @@
                     android:textColor="@color/white" android:textSize="13sp" />
             </LinearLayout>
             <LinearLayout android:id="@+id/card_actions" android:orientation="horizontal"
-                android:layout_marginTop="16dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+                android:layout_marginTop="14dp" android:layout_width="match_parent" android:layout_height="wrap_content">
                 <LinearLayout android:id="@+id/btn_local" android:orientation="vertical"
-                    android:gravity="center" android:padding="18dp" android:layout_weight="1"
+                    android:gravity="center" android:padding="14dp" android:layout_weight="1"
                     android:background="@drawable/bg_card" android:layout_width="0dp" android:layout_height="wrap_content">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="♪" android:textSize="24sp" android:textColor="@color/white" />
+                        android:text="♪" android:textSize="20sp" android:textColor="@color/white" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp" android:text="本地"
-                        android:textColor="@color/sub_text" android:textSize="12sp" />
+                        android:layout_marginTop="6dp" android:text="本地"
+                        android:textColor="@color/sub_text" android:textSize="11sp" />
                 </LinearLayout>
                 <LinearLayout android:id="@+id/btn_island" android:orientation="vertical"
-                    android:gravity="center" android:padding="18dp" android:layout_weight="1"
-                    android:layout_marginStart="12dp" android:background="@drawable/bg_card"
+                    android:gravity="center" android:padding="14dp" android:layout_weight="1"
+                    android:layout_marginStart="10dp" android:background="@drawable/bg_card"
                     android:layout_width="0dp" android:layout_height="wrap_content">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="◉" android:textSize="24sp" android:textColor="@color/white" />
+                        android:text="◉" android:textSize="20sp" android:textColor="@color/white" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp" android:text="灵动岛"
-                        android:textColor="@color/sub_text" android:textSize="12sp" />
+                        android:layout_marginTop="6dp" android:text="灵动岛"
+                        android:textColor="@color/sub_text" android:textSize="11sp" />
                 </LinearLayout>
                 <LinearLayout android:id="@+id/btn_settings" android:orientation="vertical"
-                    android:gravity="center" android:padding="18dp" android:layout_weight="1"
-                    android:layout_marginStart="12dp" android:background="@drawable/bg_card"
+                    android:gravity="center" android:padding="14dp" android:layout_weight="1"
+                    android:layout_marginStart="10dp" android:background="@drawable/bg_card"
                     android:layout_width="0dp" android:layout_height="wrap_content">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="⚙" android:textSize="24sp" android:textColor="@color/white" />
+                        android:text="⚙" android:textSize="20sp" android:textColor="@color/white" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp" android:text="设置"
-                        android:textColor="@color/sub_text" android:textSize="12sp" />
+                        android:layout_marginTop="6dp" android:text="设置"
+                        android:textColor="@color/sub_text" android:textSize="11sp" />
                 </LinearLayout>
             </LinearLayout>
             <LinearLayout android:id="@+id/card_search" android:orientation="horizontal"
                 android:gravity="center_vertical" android:paddingHorizontal="20dp"
-                android:layout_marginTop="20dp" android:background="@drawable/bg_search"
-                android:layout_width="match_parent" android:layout_height="52dp">
+                android:layout_marginTop="14dp" android:background="@drawable/bg_search"
+                android:layout_width="match_parent" android:layout_height="48dp">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="🔍" android:textSize="16sp" />
+                    android:text="🔍" android:textSize="15sp" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:layout_marginStart="10dp" android:text="搜索歌曲 / 歌手 / 专辑"
-                    android:textColor="@color/weak_text" android:textSize="14sp" />
+                    android:textColor="@color/weak_text" android:textSize="13sp" />
             </LinearLayout>
-            <TextView android:id="@+id/tv_section" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:layout_marginTop="26dp"
-                android:layout_marginBottom="14dp" android:text="本地音乐"
-                android:textColor="@color/white" android:textSize="17sp" android:textStyle="bold" />
-            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_songs"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false" android:overScrollMode="never" />
         </LinearLayout>
-    </ScrollView>
+        <FrameLayout android:layout_width="match_parent" android:layout_height="0dp"
+            android:layout_weight="1" android:layout_marginTop="14dp">
+            <FrameLayout android:id="@+id/page_local"
+                android:layout_width="match_parent" android:layout_height="match_parent">
+                <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_local"
+                    android:paddingHorizontal="20dp" android:paddingBottom="20dp"
+                    android:clipToPadding="false"
+                    android:layout_width="match_parent" android:layout_height="match_parent"
+                    android:overScrollMode="never" />
+            </FrameLayout>
+            <FrameLayout android:id="@+id/page_online"
+                android:visibility="gone"
+                android:layout_width="match_parent" android:layout_height="match_parent">
+                <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_online"
+                    android:paddingHorizontal="20dp" android:paddingBottom="20dp"
+                    android:clipToPadding="false"
+                    android:layout_width="match_parent" android:layout_height="match_parent"
+                    android:overScrollMode="never" />
+            </FrameLayout>
+        </FrameLayout>
+        <LinearLayout android:id="@+id/tab_bar"
+            android:orientation="vertical" android:background="#CC0F0D1F"
+            android:layout_width="match_parent" android:layout_height="wrap_content">
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="#22FFFFFF" />
+            <FrameLayout android:layout_width="match_parent" android:layout_height="60dp">
+                <LinearLayout android:orientation="horizontal"
+                    android:layout_width="match_parent" android:layout_height="match_parent">
+                    <LinearLayout android:id="@+id/tab_local"
+                        android:orientation="vertical" android:gravity="center"
+                        android:layout_weight="1" android:layout_width="0dp" android:layout_height="match_parent">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="♪" android:textSize="18sp" android:textColor="@color/white" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp" android:text="本地音乐"
+                            android:textColor="@color/white" android:textSize="11sp" />
+                    </LinearLayout>
+                    <LinearLayout android:id="@+id/tab_online"
+                        android:orientation="vertical" android:gravity="center"
+                        android:alpha="0.5"
+                        android:layout_weight="1" android:layout_width="0dp" android:layout_height="match_parent">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="☁" android:textSize="18sp" android:textColor="@color/white" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp" android:text="在线音乐"
+                            android:textColor="@color/white" android:textSize="11sp" />
+                    </LinearLayout>
+                </LinearLayout>
+                <View android:id="@+id/tab_indicator"
+                    android:layout_width="80dp" android:layout_height="3dp"
+                    android:layout_gravity="bottom|start"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_gradient_button" />
+            </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
 </FrameLayout>

@@ -9,27 +9,58 @@ import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
 import com.xuanyin.app.R;
 import com.xuanyin.app.model.Song;
+import java.util.ArrayList;
+import java.util.List;
 public class MusicService extends Service {
     public static final String ACTION_PLAY = "com.xuanyin.app.PLAY";
     public static final String ACTION_TOGGLE = "com.xuanyin.app.TOGGLE";
     public static final String ACTION_NEXT = "com.xuanyin.app.NEXT";
     public static final String ACTION_PREV = "com.xuanyin.app.PREV";
+    public static final String A_SONG_CHANGED = "com.xuanyin.app.SONG_CHANGED";
+    public static final String A_PLAY_STATE = "com.xuanyin.app.PLAY_STATE";
     private static final String CH = "music_ch";
     private static final int NID = 1002;
     private static ExoPlayer player;
     private static Song currentSong;
+    private static List<Song> playlist = new ArrayList<>();
+    private static int currentIndex = -1;
+    public static void playList(Context c, List<Song> list, int index) {
+        if (list == null || list.isEmpty()) return;
+        playlist = new ArrayList<>(list);
+        currentIndex = Math.max(0, Math.min(index, playlist.size() - 1));
+        playIndex(c, currentIndex);
+    }
     public static void playOnline(Context c, Song s) {
-        Intent i = new Intent(c, MusicService.class);
-        i.setAction(ACTION_PLAY); i.putExtra("song", s); c.startService(i);
+        List<Song> one = new ArrayList<>(); one.add(s); playList(c, one, 0);
+    }
+    public static void next(Context c) {
+        if (playlist.isEmpty()) return;
+        currentIndex = (currentIndex + 1) % playlist.size();
+        playIndex(c, currentIndex);
+    }
+    public static void prev(Context c) {
+        if (playlist.isEmpty()) return;
+        currentIndex = (currentIndex - 1 + playlist.size()) % playlist.size();
+        playIndex(c, currentIndex);
+    }
+    private static void playIndex(Context c, int i) {
+        if (i < 0 || i >= playlist.size()) return;
+        Song s = playlist.get(i); currentSong = s;
+        Intent intent = new Intent(c, MusicService.class);
+        intent.setAction(ACTION_PLAY); intent.putExtra("song", s);
+        c.startService(intent);
     }
     public static Song getCurrent() { return currentSong; }
-    public static ExoPlayer getPlayer() { return player; }
+    public static List<Song> getPlaylist() { return playlist; }
     @Override public void onCreate() {
         super.onCreate();
         player = new ExoPlayer.Builder(this).build();
         player.addListener(new Player.Listener() {
             @Override public void onIsPlayingChanged(boolean p) {
-                sendBroadcast(new Intent("com.xuanyin.app.PLAY_STATE").putExtra("playing", p));
+                sendBroadcast(new Intent(A_PLAY_STATE).putExtra("playing", p));
+            }
+            @Override public void onPlaybackStateChanged(int state) {
+                if (state == Player.STATE_ENDED) next(MusicService.this);
             }
         });
         ensureChannel();
@@ -43,16 +74,17 @@ public class MusicService extends Service {
                     if (s != null) {
                         currentSong = s;
                         String url = s.isOnline ? s.onlineUrl : s.path;
+                        try { player.stop(); player.clearMediaItems(); } catch (Throwable ignored) {}
                         player.setMediaItem(MediaItem.fromUri(url));
                         player.prepare(); player.play();
                         updateNotification();
-                        sendBroadcast(new Intent("com.xuanyin.app.SONG_CHANGED").putExtra("song", s));
+                        sendBroadcast(new Intent(A_SONG_CHANGED).putExtra("song", s));
                     }
                     break;
                 }
                 case ACTION_TOGGLE: player.setPlayWhenReady(!player.getPlayWhenReady()); break;
-                case ACTION_NEXT: player.seekToNextMediaItem(); break;
-                case ACTION_PREV: player.seekToPreviousMediaItem(); break;
+                case ACTION_NEXT: next(this); break;
+                case ACTION_PREV: prev(this); break;
             }
         }
         return START_STICKY;

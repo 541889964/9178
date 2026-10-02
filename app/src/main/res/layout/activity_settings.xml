@@ -39,7 +39,11 @@
         <TextView android:id="@+id/tv_expanded_h_val" android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:text="260dp"
             android:textColor="@color/white" android:textSize="13sp" />
-        <TextView android:id="@+id/btn_notify_access" android:layout_marginTop="30dp"
+        <TextView android:id="@+id/btn_alarm" android:layout_marginTop="30dp"
+            android:padding="16dp" android:background="@drawable/bg_card"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="⏰ 闹钟" android:textColor="@color/white" android:textSize="14sp" />
+        <TextView android:id="@+id/btn_notify_access" android:layout_marginTop="12dp"
             android:padding="16dp" android:background="@drawable/bg_card"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="通知监听权限 →" android:textColor="@color/white" android:textSize="14sp" />
