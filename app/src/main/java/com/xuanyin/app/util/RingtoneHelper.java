@@ -9,10 +9,6 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.util.Log;
 
-/**
- * 铃声 + 震动工具
- * 参数用 Object 接收，避免类型不匹配
- */
 public class RingtoneHelper {
     private static final String TAG = "RingtoneHelper";
     private static Ringtone currentRingtone = null;
@@ -23,11 +19,7 @@ public class RingtoneHelper {
 
     public static boolean setAlarm(Object contextObj, Object tag, long durationMs) {
         if (contextObj == null) return false;
-        if (!(contextObj instanceof Context)) {
-            Log.w(TAG, "setAlarm: not a Context: " +
-                    contextObj.getClass().getName());
-            return false;
-        }
+        if (!(contextObj instanceof Context)) return false;
         Context context = (Context) contextObj;
         try {
             stopAlarm(context);
