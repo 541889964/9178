@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/bg_deep">
+    <ImageView android:id="@+id/splash_glow" android:layout_width="match_parent"
+        android:layout_height="match_parent" android:background="@drawable/bg_glow" android:alpha="0" />
+    <LinearLayout android:id="@+id/splash_logo" android:layout_gravity="center"
+        android:orientation="vertical" android:gravity="center"
+        android:layout_width="wrap_content" android:layout_height="wrap_content">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="玄音" android:textColor="@color/white"
+            android:textSize="54sp" android:textStyle="bold" android:letterSpacing="0.24" />
+        <TextView android:id="@+id/splash_sub"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="18dp" android:text="让音乐成为生活的一部分"
+            android:textColor="@color/sub_text" android:textSize="13sp" android:letterSpacing="0.1" />
+    </LinearLayout>
+</FrameLayout>

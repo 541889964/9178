@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/island_collapsed"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <LinearLayout android:id="@+id/group_life_mini"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:paddingHorizontal="18dp"
+        android:layout_width="match_parent" android:layout_height="match_parent">
+        <TextView android:id="@+id/tv_time_mini"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="14:30" android:textColor="#FFFFFF"
+            android:textSize="15sp" android:textStyle="bold" />
+        <View android:layout_width="3dp" android:layout_height="3dp"
+            android:layout_marginHorizontal="10dp" android:background="#55FFFFFF" />
+        <TextView android:id="@+id/tv_collapsed_title"
+            android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+            android:text="10月2日" android:textColor="#C9BFF5" android:textSize="12sp"
+            android:maxLines="1" android:ellipsize="end" />
+        <TextView android:id="@+id/tv_battery_mini"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="100%" android:textColor="#FFFFFF" android:textSize="12sp" />
+    </LinearLayout>
+    <LinearLayout android:id="@+id/group_music_mini"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:paddingHorizontal="10dp" android:visibility="gone"
+        android:layout_width="match_parent" android:layout_height="match_parent">
+        <FrameLayout android:layout_width="34dp" android:layout_height="34dp">
+            <com.xuanyin.app.widget.IslandPulseView
+                android:id="@+id/pulse_mini"
+                android:layout_width="46dp" android:layout_height="46dp"
+                android:layout_gravity="center" />
+            <ImageView android:id="@+id/iv_cover_mini"
+                android:layout_width="28dp" android:layout_height="28dp"
+                android:layout_gravity="center" android:scaleType="centerCrop"
+                android:background="@drawable/bg_gradient_button" />
+        </FrameLayout>
+        <TextView android:layout_width="0dp" android:layout_weight="1"
+            android:layout_marginStart="10dp" android:layout_height="wrap_content"
+            android:text="正在播放" android:textColor="#FFFFFF"
+            android:textSize="13sp" android:textStyle="bold"
+            android:maxLines="1" android:ellipsize="end" />
+        <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginEnd="8dp" android:layout_width="wrap_content" android:layout_height="wrap_content">
+            <View android:layout_width="3dp" android:layout_height="10dp" android:background="#FF6B9D" />
+            <View android:layout_width="3dp" android:layout_height="16dp"
+                android:layout_marginHorizontal="3dp" android:background="#9B6BFF" />
+            <View android:layout_width="3dp" android:layout_height="8dp" android:background="#FF6B9D" />
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:id="@+id/group_download_mini"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:paddingHorizontal="14dp" android:visibility="gone"
+        android:layout_width="match_parent" android:layout_height="match_parent">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="⬇" android:textSize="16sp" android:textColor="#5AC8FA" />
+        <LinearLayout android:orientation="vertical" android:layout_weight="1"
+            android:layout_marginStart="10dp" android:layout_width="0dp" android:layout_height="wrap_content">
+            <TextView android:id="@+id/tv_dl_title_mini"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="下载中" android:textColor="#FFFFFF" android:textSize="12sp"
+                android:maxLines="1" android:ellipsize="end" />
+            <ProgressBar android:id="@+id/dl_bar_mini"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent" android:layout_height="2dp"
+                android:layout_marginTop="3dp" android:max="100"
+                android:progressTint="#5AC8FA" />
+        </LinearLayout>
+        <TextView android:id="@+id/tv_dl_pct_mini"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginStart="10dp" android:text="0%"
+            android:textColor="#5AC8FA" android:textSize="12sp" android:textStyle="bold" />
+    </LinearLayout>
+</FrameLayout>
