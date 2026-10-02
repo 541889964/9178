@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/bg_deep" android:fillViewport="true">
+    <LinearLayout android:orientation="vertical" android:padding="20dp"
+        android:layout_width="match_parent" android:layout_height="wrap_content">
+        <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_width="match_parent" android:layout_height="wrap_content">
+            <ImageView android:id="@+id/btn_alarm_back"
+                android:layout_width="42dp" android:layout_height="42dp"
+                android:padding="10dp"
+                android:src="@android:drawable/ic_menu_revert"
+                android:background="@drawable/bg_search" />
+            <TextView android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:layout_marginStart="16dp"
+                android:text="⏰ 闹钟" android:textColor="@color/white"
+                android:textSize="22sp" android:textStyle="bold" />
+        </LinearLayout>
+        <TextView android:id="@+id/tv_alarm_current"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:text="当前无闹钟"
+            android:textColor="#B8A8E8" android:textSize="13sp" />
+        <LinearLayout android:orientation="horizontal" android:gravity="center"
+            android:layout_marginTop="30dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content">
+            <NumberPicker android:id="@+id/np_hour"
+                android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginHorizontal="14dp" android:text=":"
+                android:textColor="@color/white" android:textSize="32sp" android:textStyle="bold" />
+            <NumberPicker android:id="@+id/np_min"
+                android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        </LinearLayout>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="24dp" android:text="重复"
+            android:textColor="@color/sub_text" android:textSize="12sp" />
+        <LinearLayout android:orientation="horizontal"
+            android:layout_marginTop="8dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <TextView android:id="@+id/al_mon" android:layout_width="0dp" android:layout_weight="1" android:layout_height="38dp" android:gravity="center" android:text="一" android:textColor="#FFFFFF" android:textSize="13sp" android:background="@drawable/bg_search" android:layout_marginEnd="4dp" />
+            <TextView android:id="@+id/al_tue" android:layout_width="0dp" android:layout_weight="1" android:layout_height="38dp" android:gravity="center" android:text="二" android:textColor="#FFFFFF" android:textSize="13sp" android:background="@drawable/bg_search" android:layout_marginEnd="4dp" />
+            <TextView android:id="@+id/al_wed" android:layout_width="0dp" android:layout_weight="1" android:layout_height="38dp" android:gravity="center" android:text="三" android:textColor="#FFFFFF" android:textSize="13sp" android:background="@drawable/bg_search" android:layout_marginEnd="4dp" />
+            <TextView android:id="@+id/al_thu" android:layout_width="0dp" android:layout_weight="1" android:layout_height="38dp" android:gravity="center" android:text="四" android:textColor="#FFFFFF" android:textSize="13sp" android:background="@drawable/bg_search" android:layout_marginEnd="4dp" />
+            <TextView android:id="@+id/al_fri" android:layout_width="0dp" android:layout_weight="1" android:layout_height="38dp" android:gravity="center" android:text="五" android:textColor="#FFFFFF" android:textSize="13sp" android:background="@drawable/bg_search" android:layout_marginEnd="4dp" />
+            <TextView android:id="@+id/al_sat" android:layout_width="0dp" android:layout_weight="1" android:layout_height="38dp" android:gravity="center" android:text="六" android:textColor="#FFFFFF" android:textSize="13sp" android:background="@drawable/bg_search" android:layout_marginEnd="4dp" />
+            <TextView android:id="@+id/al_sun" android:layout_width="0dp" android:layout_weight="1" android:layout_height="38dp" android:gravity="center" android:text="日" android:textColor="#FFFFFF" android:textSize="13sp" android:background="@drawable/bg_search" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/row_ringtone"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:padding="16dp" android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card"
+            android:layout_width="match_parent" android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="🎵" android:textSize="16sp" />
+            <TextView android:layout_width="0dp" android:layout_weight="1"
+                android:layout_marginStart="12dp" android:layout_height="wrap_content"
+                android:text="闹钟铃声" android:textColor="#FFFFFF" android:textSize="14sp" />
+            <TextView android:id="@+id/tv_ringtone"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="系统默认" android:textColor="#B8A8E8"
+                android:textSize="13sp" android:maxLines="1"
+                android:ellipsize="end" />
+        </LinearLayout>
+        <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
+            android:padding="16dp" android:layout_marginTop="12dp"
+            android:background="@drawable/bg_card"
+            android:layout_width="match_parent" android:layout_height="wrap_content">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="🔊" android:textSize="16sp" />
+            <TextView android:layout_width="0dp" android:layout_weight="1"
+                android:layout_marginStart="12dp" android:layout_height="wrap_content"
+                android:text="音量渐强（5 秒内从 0 到最大）" android:textColor="#FFFFFF" android:textSize="14sp" />
+            <TextView android:id="@+id/tv_fade"
+                android:layout_width="24dp" android:layout_height="24dp"
+                android:gravity="center"
+                android:text="✓" android:textColor="#30D158"
+                android:textSize="16sp" android:textStyle="bold" />
+        </LinearLayout>
+        <LinearLayout android:orientation="horizontal" android:gravity="center"
+            android:layout_marginTop="30dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+            <TextView android:id="@+id/btn_alarm_off"
+                android:layout_width="wrap_content" android:layout_height="48dp"
+                android:paddingHorizontal="24dp" android:gravity="center"
+                android:background="@drawable/bg_card"
+                android:text="关闭闹钟" android:textColor="#FF6B9D" android:textSize="15sp" />
+            <TextView android:id="@+id/btn_alarm_save"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_marginStart="12dp" android:layout_height="48dp"
+                android:gravity="center"
+                android:background="@drawable/bg_gradient_button"
+                android:text="保存" android:textColor="#FFFFFF"
+                android:textSize="15sp" android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

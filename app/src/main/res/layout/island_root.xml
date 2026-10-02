@@ -6,7 +6,7 @@
     android:clipChildren="false" android:clipToPadding="false">
 
     <FrameLayout android:id="@+id/main_island"
-        android:layout_width="230dp" android:layout_height="44dp"
+        android:layout_width="240dp" android:layout_height="48dp"
         android:layout_gravity="center_horizontal|top" android:clipChildren="false">
         <com.xuanyin.app.widget.IslandBackdropView
             android:id="@+id/main_backdrop"
@@ -15,16 +15,17 @@
             android:id="@+id/main_charging"
             android:layout_width="match_parent" android:layout_height="match_parent" />
 
+        <!-- 折叠·生活 -->
         <LinearLayout android:id="@+id/main_collapsed_life"
             android:orientation="horizontal" android:gravity="center_vertical"
-            android:paddingHorizontal="14dp"
+            android:paddingHorizontal="12dp"
             android:layout_width="match_parent" android:layout_height="match_parent">
             <TextView android:id="@+id/tv_time_mini"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="14:30" android:textColor="#FFFFFF"
                 android:textSize="14sp" android:textStyle="bold" android:maxLines="1" />
             <View android:layout_width="3dp" android:layout_height="3dp"
-                android:layout_marginHorizontal="8dp" android:background="#55FFFFFF" />
+                android:layout_marginHorizontal="6dp" android:background="#55FFFFFF" />
             <TextView android:id="@+id/tv_date_mini"
                 android:layout_width="0dp" android:layout_weight="1"
                 android:layout_height="wrap_content" android:text="10月2日"
@@ -32,20 +33,21 @@
                 android:maxLines="1" android:ellipsize="end" />
             <TextView android:id="@+id/tv_time_short"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:text="♪ 0min" android:textColor="#B8A8E8"
-                android:textSize="11sp" android:maxLines="1" />
+                android:layout_marginEnd="6dp"
+                android:text="♪0m" android:textColor="#B8A8E8"
+                android:textSize="10sp" android:maxLines="1" />
             <TextView android:id="@+id/tv_battery_mini"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="100%" android:textColor="#FFFFFF" android:textSize="11sp" />
         </LinearLayout>
 
+        <!-- 折叠·音乐（含时长 + 录屏 🔔 按钮） -->
         <LinearLayout android:id="@+id/main_collapsed_music"
             android:orientation="horizontal" android:gravity="center_vertical"
-            android:paddingHorizontal="10dp" android:visibility="gone"
+            android:paddingHorizontal="8dp" android:visibility="gone"
             android:layout_width="match_parent" android:layout_height="match_parent">
             <ImageView android:id="@+id/iv_cover_mini"
-                android:layout_width="28dp" android:layout_height="28dp" android:scaleType="centerCrop" />
+                android:layout_width="32dp" android:layout_height="32dp" android:scaleType="centerCrop" />
             <LinearLayout android:orientation="vertical" android:layout_marginStart="8dp"
                 android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content">
                 <TextView android:id="@+id/tv_title_mini"
@@ -53,30 +55,32 @@
                     android:text="未播放" android:textColor="#FFFFFF"
                     android:textSize="12sp" android:textStyle="bold"
                     android:maxLines="1" android:singleLine="true" android:ellipsize="end" />
-                <LinearLayout android:orientation="horizontal" android:layout_marginTop="2dp"
-                    android:layout_width="match_parent" android:layout_height="wrap_content">
-                    <TextView android:id="@+id/tv_lyric_mini"
-                        android:layout_width="0dp" android:layout_weight="1"
-                        android:layout_height="wrap_content" android:text=""
-                        android:textColor="#C9BFF5" android:textSize="11sp"
-                        android:maxLines="1" android:singleLine="true" android:ellipsize="end" />
-                    <TextView android:id="@+id/tv_lyric2_mini"
-                        android:layout_width="0dp" android:layout_weight="1"
-                        android:layout_marginStart="8dp" android:layout_height="wrap_content"
-                        android:text="" android:textColor="#66FFFFFF" android:textSize="11sp"
-                        android:maxLines="1" android:singleLine="true" android:ellipsize="end" />
-                </LinearLayout>
+                <TextView android:id="@+id/tv_lyric_mini"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp" android:text=""
+                    android:textColor="#C9BFF5" android:textSize="11sp"
+                    android:maxLines="1" android:singleLine="true" android:ellipsize="end" />
             </LinearLayout>
+            <!-- 折叠音乐区听歌时长 -->
+            <TextView android:id="@+id/tv_time_short_music"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp" android:text="♪0m"
+                android:textColor="#B8A8E8" android:textSize="10sp" />
+            <!-- 设为闹钟按钮 -->
+            <TextView android:id="@+id/btn_set_alarm"
+                android:layout_width="30dp" android:layout_height="30dp"
+                android:text="🔔" android:textSize="15sp" android:gravity="center" />
+            <!-- 波形 -->
             <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
-                android:layout_width="24dp" android:layout_height="18dp" android:layout_marginStart="6dp">
-                <View android:layout_width="3dp" android:layout_height="8dp" android:layout_marginEnd="2dp" android:background="#FF6B9D" />
-                <View android:layout_width="3dp" android:layout_height="14dp" android:layout_marginEnd="2dp" android:background="#9B6BFF" />
-                <View android:layout_width="3dp" android:layout_height="10dp" android:layout_marginEnd="2dp" android:background="#FF6B9D" />
-                <View android:layout_width="3dp" android:layout_height="16dp" android:layout_marginEnd="2dp" android:background="#9B6BFF" />
-                <View android:layout_width="3dp" android:layout_height="6dp" android:background="#FF6B9D" />
+                android:layout_width="20dp" android:layout_height="16dp" android:layout_marginStart="2dp">
+                <View android:layout_width="2.5dp" android:layout_height="8dp" android:layout_marginEnd="2dp" android:background="#FF6B9D" />
+                <View android:layout_width="2.5dp" android:layout_height="13dp" android:layout_marginEnd="2dp" android:background="#9B6BFF" />
+                <View android:layout_width="2.5dp" android:layout_height="10dp" android:layout_marginEnd="2dp" android:background="#FF6B9D" />
+                <View android:layout_width="2.5dp" android:layout_height="15dp" android:background="#9B6BFF" />
             </LinearLayout>
         </LinearLayout>
 
+        <!-- 折叠·下载 -->
         <LinearLayout android:id="@+id/main_collapsed_dl"
             android:orientation="horizontal" android:gravity="center_vertical"
             android:paddingHorizontal="14dp" android:visibility="gone"
@@ -100,11 +104,12 @@
                 android:textColor="#5AC8FA" android:textSize="12sp" android:textStyle="bold" />
         </LinearLayout>
 
+        <!-- 展开态 -->
         <ScrollView android:id="@+id/main_expanded"
             android:layout_width="match_parent" android:layout_height="match_parent"
             android:visibility="gone" android:scrollbars="none" android:fillViewport="true">
             <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
-                <!-- 生活模式 -->
+                <!-- 生活 -->
                 <LinearLayout android:id="@+id/exp_life"
                     android:orientation="vertical" android:padding="18dp"
                     android:layout_width="match_parent" android:layout_height="wrap_content">
@@ -117,7 +122,7 @@
                         android:layout_marginTop="4dp" android:text="2026年10月2日 星期四"
                         android:textColor="#C9BFF5" android:textSize="12sp" />
                     <View android:layout_width="match_parent" android:layout_height="1dp"
-                        android:layout_marginVertical="12dp" android:background="#22FFFFFF" />
+                        android:layout_marginVertical="10dp" android:background="#22FFFFFF" />
                     <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
                         android:layout_width="match_parent" android:layout_height="wrap_content">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -132,7 +137,20 @@
                             android:textSize="13sp" android:textStyle="bold" />
                     </LinearLayout>
                     <View android:layout_width="match_parent" android:layout_height="1dp"
-                        android:layout_marginVertical="10dp" android:background="#18FFFFFF" />
+                        android:layout_marginVertical="8dp" android:background="#18FFFFFF" />
+                    <LinearLayout android:id="@+id/row_alarm"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:paddingVertical="8dp"
+                        android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="⏰" android:textSize="16sp" />
+                        <TextView android:layout_width="0dp" android:layout_weight="1"
+                            android:layout_marginStart="10dp" android:layout_height="wrap_content"
+                            android:text="闹钟设置" android:textColor="#FFFFFF" android:textSize="13sp" />
+                        <TextView android:id="@+id/tv_alarm_state"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="点击设置" android:textColor="#B8A8E8" android:textSize="12sp" />
+                    </LinearLayout>
                     <LinearLayout android:id="@+id/row_record"
                         android:orientation="horizontal" android:gravity="center_vertical"
                         android:paddingVertical="8dp"
@@ -161,48 +179,84 @@
                             android:textSize="13sp" android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
-                <!-- 音乐模式 -->
+                <!-- 音乐（含时长 + 录屏） -->
                 <LinearLayout android:id="@+id/exp_music"
-                    android:orientation="vertical" android:padding="16dp" android:visibility="gone"
+                    android:orientation="vertical" android:padding="14dp" android:visibility="gone"
                     android:layout_width="match_parent" android:layout_height="wrap_content">
                     <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
                         android:layout_width="match_parent" android:layout_height="wrap_content">
                         <ImageView android:id="@+id/iv_cover_big"
-                            android:layout_width="46dp" android:layout_height="46dp" android:scaleType="centerCrop" />
+                            android:layout_width="44dp" android:layout_height="44dp" android:scaleType="centerCrop" />
                         <LinearLayout android:orientation="vertical"
-                            android:layout_marginStart="12dp" android:layout_width="0dp"
+                            android:layout_marginStart="10dp" android:layout_width="0dp"
                             android:layout_weight="1" android:layout_height="wrap_content">
                             <TextView android:id="@+id/tv_title_big"
                                 android:layout_width="match_parent" android:layout_height="wrap_content"
                                 android:text="未播放" android:textColor="#FFFFFF"
-                                android:textSize="15sp" android:textStyle="bold"
+                                android:textSize="14sp" android:textStyle="bold"
                                 android:maxLines="1" android:singleLine="true" android:ellipsize="end" />
                             <TextView android:id="@+id/tv_artist_big"
                                 android:layout_width="match_parent" android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp" android:text="未知歌手"
-                                android:textColor="#C9BFF5" android:textSize="12sp"
+                                android:textColor="#C9BFF5" android:textSize="11sp"
                                 android:maxLines="1" android:singleLine="true" android:ellipsize="end" />
                         </LinearLayout>
+                        <TextView android:id="@+id/btn_alarm_from_song"
+                            android:layout_width="wrap_content" android:layout_height="32dp"
+                            android:paddingHorizontal="10dp"
+                            android:background="@drawable/bg_search"
+                            android:text="🔔 闹钟" android:textColor="#FFFFFF"
+                            android:textSize="11sp" android:gravity="center" />
                     </LinearLayout>
-                    <LinearLayout android:orientation="vertical" android:layout_marginTop="12dp"
+                    <LinearLayout android:orientation="vertical" android:layout_marginTop="8dp"
                         android:layout_width="match_parent" android:layout_height="wrap_content">
-                        <TextView android:id="@+id/ly1" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#66FFFFFF" android:textSize="13sp" android:maxLines="1" android:ellipsize="end" />
-                        <TextView android:id="@+id/ly2" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#B8FFFFFF" android:textSize="13sp" android:maxLines="1" android:ellipsize="end" />
-                        <TextView android:id="@+id/ly3" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
-                        <TextView android:id="@+id/ly4" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#B8FFFFFF" android:textSize="13sp" android:maxLines="1" android:ellipsize="end" />
-                        <TextView android:id="@+id/ly5" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#66FFFFFF" android:textSize="13sp" android:maxLines="1" android:ellipsize="end" />
+                        <TextView android:id="@+id/ly1" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#66FFFFFF" android:textSize="12sp" android:maxLines="1" android:ellipsize="end" />
+                        <TextView android:id="@+id/ly2" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#B8FFFFFF" android:textSize="12sp" android:maxLines="1" android:ellipsize="end" />
+                        <TextView android:id="@+id/ly3" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+                        <TextView android:id="@+id/ly4" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#B8FFFFFF" android:textSize="12sp" android:maxLines="1" android:ellipsize="end" />
+                        <TextView android:id="@+id/ly5" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#66FFFFFF" android:textSize="12sp" android:maxLines="1" android:ellipsize="end" />
                     </LinearLayout>
                     <ProgressBar android:id="@+id/progress"
                         style="?android:attr/progressBarStyleHorizontal"
                         android:layout_width="match_parent" android:layout_height="3dp"
-                        android:layout_marginTop="10dp" android:max="100" android:progress="30"
+                        android:layout_marginTop="6dp" android:max="100" android:progress="30"
                         android:progressTint="#FF6B9D" />
                     <LinearLayout android:orientation="horizontal" android:gravity="center"
-                        android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="wrap_content">
-                        <TextView android:id="@+id/btn_prev" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="16dp" android:paddingVertical="4dp" android:text="⏮" android:textColor="#FFFFFF" android:textSize="22sp" />
-                        <TextView android:id="@+id/btn_play" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="16dp" android:paddingVertical="4dp" android:text="⏸" android:textColor="#FFFFFF" android:textSize="26sp" />
-                        <TextView android:id="@+id/btn_next" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="16dp" android:paddingVertical="4dp" android:text="⏭" android:textColor="#FFFFFF" android:textSize="22sp" />
-                        <TextView android:id="@+id/btn_mode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="16dp" android:paddingVertical="4dp" android:text="🔁" android:textColor="#FFFFFF" android:textSize="18sp" />
+                        android:layout_marginTop="2dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:id="@+id/btn_prev" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="14dp" android:paddingVertical="2dp" android:text="⏮" android:textColor="#FFFFFF" android:textSize="20sp" />
+                        <TextView android:id="@+id/btn_play" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="14dp" android:paddingVertical="2dp" android:text="⏸" android:textColor="#FFFFFF" android:textSize="24sp" />
+                        <TextView android:id="@+id/btn_next" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="14dp" android:paddingVertical="2dp" android:text="⏭" android:textColor="#FFFFFF" android:textSize="20sp" />
+                        <TextView android:id="@+id/btn_mode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="14dp" android:paddingVertical="2dp" android:text="🔁" android:textColor="#FFFFFF" android:textSize="16sp" />
+                    </LinearLayout>
+                    <View android:layout_width="match_parent" android:layout_height="1dp"
+                        android:layout_marginVertical="6dp" android:background="#18FFFFFF" />
+                    <!-- ★ 音乐区听歌时长 -->
+                    <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
+                        android:paddingVertical="4dp"
+                        android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="🎧" android:textSize="14sp" />
+                        <TextView android:layout_width="0dp" android:layout_weight="1"
+                            android:layout_marginStart="10dp" android:layout_height="wrap_content"
+                            android:text="累计听歌" android:textColor="#FFFFFF" android:textSize="12sp" />
+                        <TextView android:id="@+id/tv_listen_music"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="0 分钟" android:textColor="#FF6B9D"
+                            android:textSize="12sp" android:textStyle="bold" />
+                    </LinearLayout>
+                    <!-- ★ 音乐区录屏入口 -->
+                    <LinearLayout android:id="@+id/row_record_music"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:paddingVertical="4dp"
+                        android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="🎬" android:textSize="14sp" />
+                        <TextView android:layout_width="0dp" android:layout_weight="1"
+                            android:layout_marginStart="10dp" android:layout_height="wrap_content"
+                            android:text="录屏" android:textColor="#FFFFFF" android:textSize="12sp" />
+                        <TextView android:id="@+id/tv_rec_state_music"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="点击开始" android:textColor="#B8A8E8" android:textSize="11sp" />
                     </LinearLayout>
                 </LinearLayout>
             </FrameLayout>
@@ -210,14 +264,45 @@
 
         <TextView android:id="@+id/btn_close_expanded"
             android:layout_width="28dp" android:layout_height="28dp"
-            android:layout_gravity="top|end" android:layout_margin="6dp"
+            android:layout_gravity="top|end" android:layout_margin="4dp"
             android:text="✕" android:textColor="#AAFFFFFF"
             android:textSize="14sp" android:gravity="center"
             android:visibility="gone" />
     </FrameLayout>
 
+    <!-- 录屏岛 -->
+    <FrameLayout android:id="@+id/rec_island"
+        android:layout_width="240dp" android:layout_height="44dp"
+        android:layout_gravity="center_horizontal|top" android:visibility="gone" android:clipChildren="false">
+        <com.xuanyin.app.widget.IslandBackdropView
+            android:id="@+id/rec_backdrop"
+            android:layout_width="match_parent" android:layout_height="match_parent" />
+        <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
+            android:paddingHorizontal="14dp" android:layout_width="match_parent" android:layout_height="match_parent">
+            <View android:id="@+id/rec_dot"
+                android:layout_width="8dp" android:layout_height="8dp"
+                android:background="@drawable/rec_dot" />
+            <TextView android:id="@+id/rec_title"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_marginStart="10dp" android:layout_height="wrap_content"
+                android:text="● 录制中" android:textColor="#FFFFFF"
+                android:textSize="12sp" android:textStyle="bold" />
+            <TextView android:id="@+id/rec_time"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="00:00" android:textColor="#FF6B9D"
+                android:textSize="12sp" android:textStyle="bold" />
+            <TextView android:id="@+id/rec_stop"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:paddingHorizontal="10dp" android:paddingVertical="4dp"
+                android:background="@drawable/bg_search"
+                android:text="停止" android:textColor="#FFFFFF" android:textSize="11sp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- 通知岛 -->
     <FrameLayout android:id="@+id/notif_island"
-        android:layout_width="230dp" android:layout_height="44dp"
+        android:layout_width="240dp" android:layout_height="44dp"
         android:layout_gravity="center_horizontal|top" android:visibility="gone" android:clipChildren="false">
         <com.xuanyin.app.widget.IslandBackdropView
             android:id="@+id/notif_backdrop"

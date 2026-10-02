@@ -31,14 +31,17 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import com.xuanyin.app.AlarmActivity;
 import com.xuanyin.app.R;
 import com.xuanyin.app.RecordActivity;
 import com.xuanyin.app.model.Song;
 import com.xuanyin.app.util.Anim;
 import com.xuanyin.app.util.Haptic;
 import com.xuanyin.app.util.Prefs;
+import com.xuanyin.app.util.RingtoneHelper;
 import com.xuanyin.app.util.WallpaperHelper;
 import com.xuanyin.app.widget.ChargingEffectView;
 import com.xuanyin.app.widget.IslandBackdropView;
@@ -51,7 +54,7 @@ import java.util.Locale;
 public class IslandService extends Service {
     private static final String CH = "island_ch";
     private static final int NID = 1001;
-    private static final long SPLIT_OUT_MS = 400L;
+    private static final long SPLIT_MS = 420L;
     private static final long SPLIT_BACK_MS = 450L;
     private static final long NOTIF_BASE_MS = 5000L;
     private static final long NOTIF_EXTRA_PER10 = 1800L;
@@ -63,100 +66,83 @@ public class IslandService extends Service {
     private static final Interpolator EASE_ROW = new DecelerateInterpolator(1.8f);
 
     private WindowManager wm;
-    private FrameLayout root, mainIsland, notifIsland;
-    private IslandBackdropView mainBackdrop, notifBackdrop;
+    private FrameLayout root, mainIsland, notifIsland, recIsland;
+    private IslandBackdropView mainBackdrop, notifBackdrop, recBackdrop;
     private ChargingEffectView mainCharging;
     private View collapsedLife, collapsedMusic, collapsedDl;
     private ScrollView expandedView;
     private TextView btnCloseExpanded;
     private View expLife, expMusic;
-    private TextView tvTimeMini, tvDateMini, tvBatteryMini, tvTimeShort, tvTitleMini, tvLyricMini, tvLyric2Mini;
+    private TextView tvTimeMini, tvDateMini, tvBatteryMini, tvTimeShort;
+    private TextView tvTitleMini, tvLyricMini;
     private TextView tvDlTitle, tvDlPct;
     private ProgressBar dlBar;
     private ImageView ivCoverMini, ivCoverBig;
     private TextView tvTimeBig, tvDateBig, tvAlarmBig, tvBatteryBig;
     private TextView tvTitleBig, tvArtistBig;
     private TextView tvListenBig, tvRecState;
-    private View rowRecord, rowTime;
+    private TextView tvTimeShortMusic, tvListenMusic;
+    private View rowRecord, rowTime, rowAlarm;
+    private TextView btnSetAlarm, btnAlarmFromSong;
     private TextView ly1, ly2, ly3, ly4, ly5;
     private ProgressBar progress;
     private TextView notifTitle, notifText, btnNotifClose;
+    private TextView recTitle, recTime, recStop;
+    private View recDot;
 
     private WindowManager.LayoutParams params;
     private int screenWidth, mainW, expW, foldH, expH, splitPx;
-    private boolean isExpanded = false;
-    private boolean musicMode = false, downloadMode = false;
-    private boolean charging = false, notifShowing = false, playing = false;
+    private boolean isExpanded = false, musicMode = false, downloadMode = false;
+    private boolean charging = false, notifShowing = false, playing = false, recShowing = false;
     private Song currentSong;
     private List<Lyr> lyrics = new ArrayList<Lyr>();
     private int lastLyricIdx = -1;
-    private ValueAnimator notifAnim, sizeAnim;
+    private ValueAnimator notifAnim, recAnim, sizeAnim;
     private long notifDuration = NOTIF_BASE_MS;
     private String pendingTitle = null, pendingText = null;
+    private long recStartMs = 0;
+    private boolean recActive = false;
     private final Handler ui = new Handler(Looper.getMainLooper());
+
     private static class Lyr { long t; String s; Lyr(long t, String s) { this.t = t; this.s = s; } }
 
-    private final Runnable idleSwitch = new Runnable() {
-        @Override public void run() { if (!musicMode) return; musicMode = false; refreshMode(); }
-    };
-    private final Runnable hideNotif = new Runnable() {
-        @Override public void run() { dismissNotif(); }
-    };
+    private final Runnable idleSwitch = new Runnable() { @Override public void run() { if (!musicMode) return; musicMode = false; refreshMode(); } };
+    private final Runnable hideNotif = new Runnable() { @Override public void run() { dismissNotif(); } };
 
     private final BroadcastReceiver rx = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
-            String a = i.getAction();
-            if (a == null) return;
+            String a = i.getAction(); if (a == null) return;
             try {
                 if ("com.xuanyin.app.SONG_CHANGED".equals(a)) {
-                    Song s = (Song) i.getSerializableExtra("song");
-                    if (s != null) onSong(s);
-                } else if ("com.xuanyin.app.LYRICS".equals(a)) {
-                    parseLyrics(i.getStringExtra("lrc"));
-                } else if ("com.xuanyin.app.PLAY_STATE".equals(a)) {
-                    boolean p = i.getBooleanExtra("playing", false);
-                    playing = p;
+                    Song s = (Song) i.getSerializableExtra("song"); if (s != null) onSong(s);
+                } else if ("com.xuanyin.app.LYRICS".equals(a)) parseLyrics(i.getStringExtra("lrc"));
+                else if ("com.xuanyin.app.PLAY_STATE".equals(a)) {
+                    boolean p = i.getBooleanExtra("playing", false); playing = p;
                     if (p) { musicMode = true; refreshMode(); ui.removeCallbacks(idleSwitch); }
                     else { ui.removeCallbacks(idleSwitch); ui.postDelayed(idleSwitch, IDLE_TIMEOUT); }
                 } else if ("com.xuanyin.app.MODE_CHANGED".equals(a)) {
                     View bm = root.findViewById(R.id.btn_mode);
-                    if (bm instanceof TextView) {
-                        int m = i.getIntExtra("mode", 0);
-                        ((TextView) bm).setText(m == 0 ? "🔁" : (m == 1 ? "🔂" : "🔀"));
-                    }
+                    if (bm instanceof TextView) { int m = i.getIntExtra("mode", 0);
+                        ((TextView) bm).setText(m == 0 ? "🔁" : (m == 1 ? "🔂" : "🔀")); }
                 } else if ("com.xuanyin.app.REC_STATE".equals(a)) {
                     boolean on = i.getBooleanExtra("on", false);
-                    if (tvRecState != null) {
-                        tvRecState.setText(on ? "● 录制中" : "点击开始");
-                        tvRecState.setTextColor(on ? 0xFFFF3B30 : 0xFFB8A8E8);
-                    }
+                    if (on) showRecIsland(); else dismissRecIsland();
                 } else if ("com.xuanyin.app.NOTIFY".equals(a)) {
                     showNotif(i.getStringExtra("title"), i.getStringExtra("text"));
-                } else if ("com.xuanyin.app.ALARM".equals(a)) {
-                    showAlarm();
-                } else if ("com.xuanyin.app.DL_START".equals(a)) {
-                    onDlStart(i.getStringExtra("title"));
-                } else if ("com.xuanyin.app.DL_PROGRESS".equals(a)) {
-                    onDlProg(i.getStringExtra("title"), i.getIntExtra("percent", 0));
-                } else if ("com.xuanyin.app.DL_DONE".equals(a)) {
-                    onDlDone();
-                } else if ("com.xuanyin.app.DL_ERROR".equals(a)) {
-                    onDlErr();
-                } else if (Intent.ACTION_BATTERY_CHANGED.equals(a)) {
-                    onBattery(i);
-                }
+                } else if ("com.xuanyin.app.ALARM".equals(a)) showAlarm();
+                else if ("com.xuanyin.app.DL_START".equals(a)) onDlStart(i.getStringExtra("title"));
+                else if ("com.xuanyin.app.DL_PROGRESS".equals(a)) onDlProg(i.getStringExtra("title"), i.getIntExtra("percent", 0));
+                else if ("com.xuanyin.app.DL_DONE".equals(a)) onDlDone();
+                else if ("com.xuanyin.app.DL_ERROR".equals(a)) onDlErr();
+                else if (Intent.ACTION_BATTERY_CHANGED.equals(a)) onBattery(i);
             } catch (Throwable ignored) {}
         }
     };
 
     private long calcNotifDuration(String title, String text) {
-        int len = 0;
-        if (title != null) len += title.length();
-        if (text != null) len += text.length();
-        long d = NOTIF_BASE_MS;
-        if (len > 14) d += ((len - 14 + 9) / 10) * NOTIF_EXTRA_PER10;
-        if (d > 15000L) d = 15000L;
-        return d;
+        int len = 0; if (title != null) len += title.length(); if (text != null) len += text.length();
+        long d = NOTIF_BASE_MS; if (len > 14) d += ((len - 14 + 9) / 10) * NOTIF_EXTRA_PER10;
+        if (d > 15000L) d = 15000L; return d;
     }
 
     private void parseLyrics(String lrc) {
@@ -197,20 +183,14 @@ public class IslandService extends Service {
             if (isCharging != charging) {
                 charging = isCharging;
                 if (mainCharging != null) mainCharging.setActive(isCharging);
-                if (mainBackdrop != null) {
-                    mainBackdrop.setChargingBreath(isCharging);
-                    mainBackdrop.setMode(isCharging ? 2 : (musicMode ? 1 : 0));
-                }
+                if (mainBackdrop != null) { mainBackdrop.setChargingBreath(isCharging); mainBackdrop.setMode(isCharging ? 2 : (musicMode ? 1 : 0)); }
                 if (charging && mainIsland != null) {
                     Haptic.charge(this);
                     mainIsland.animate().cancel();
                     mainIsland.animate().scaleX(1.06f).scaleY(1.06f).setDuration(150)
-                        .withEndAction(new Runnable() {
-                            @Override public void run() {
-                                if (mainIsland != null) mainIsland.animate()
-                                    .scaleX(1f).scaleY(1f).setDuration(360).setInterpolator(EASE_SMOOTH).start();
-                            }
-                        }).start();
+                        .withEndAction(new Runnable() { @Override public void run() {
+                            if (mainIsland != null) mainIsland.animate().scaleX(1f).scaleY(1f).setDuration(360).setInterpolator(EASE_SMOOTH).start();
+                        } }).start();
                 }
             }
             String txt = isCharging ? "⚡" + pct + "%" : pct + "%";
@@ -222,9 +202,9 @@ public class IslandService extends Service {
     @Override public void onCreate() {
         super.onCreate();
         screenWidth = getResources().getDisplayMetrics().widthPixels;
-        foldH = dp(44); expH = dp(300);
-        mainW = Math.min(dp(230), (int)(screenWidth * 0.60f));
-        expW = (int)(screenWidth * 0.92f);
+        foldH = dp(Prefs.getInt("collapsed_height_dp", 48)); expH = dp(Prefs.getInt("expanded_height_dp", 320));
+        mainW = (int)(screenWidth * Prefs.getFloat("collapsed_width_percent", 0.62f));
+        expW = (int)(screenWidth * Prefs.getFloat("expanded_width_percent", 0.92f));
         splitPx = (int)(screenWidth * 0.34f);
         startFg(); initWin(); startClock();
         IntentFilter f = new IntentFilter();
@@ -268,8 +248,10 @@ public class IslandService extends Service {
             root = (FrameLayout) LayoutInflater.from(this).inflate(R.layout.island_root, null);
             mainIsland = (FrameLayout) root.findViewById(R.id.main_island);
             notifIsland = (FrameLayout) root.findViewById(R.id.notif_island);
+            recIsland = (FrameLayout) root.findViewById(R.id.rec_island);
             mainBackdrop = (IslandBackdropView) root.findViewById(R.id.main_backdrop);
             notifBackdrop = (IslandBackdropView) root.findViewById(R.id.notif_backdrop);
+            recBackdrop = (IslandBackdropView) root.findViewById(R.id.rec_backdrop);
             mainCharging = (ChargingEffectView) root.findViewById(R.id.main_charging);
             collapsedLife = root.findViewById(R.id.main_collapsed_life);
             collapsedMusic = root.findViewById(R.id.main_collapsed_music);
@@ -284,7 +266,6 @@ public class IslandService extends Service {
             tvTimeShort = (TextView) root.findViewById(R.id.tv_time_short);
             tvTitleMini = (TextView) root.findViewById(R.id.tv_title_mini);
             tvLyricMini = (TextView) root.findViewById(R.id.tv_lyric_mini);
-            tvLyric2Mini = (TextView) root.findViewById(R.id.tv_lyric2_mini);
             tvDlTitle = (TextView) root.findViewById(R.id.tv_dl_title);
             tvDlPct = (TextView) root.findViewById(R.id.tv_dl_pct);
             dlBar = (ProgressBar) root.findViewById(R.id.dl_bar);
@@ -297,9 +278,14 @@ public class IslandService extends Service {
             tvTitleBig = (TextView) root.findViewById(R.id.tv_title_big);
             tvArtistBig = (TextView) root.findViewById(R.id.tv_artist_big);
             tvListenBig = (TextView) root.findViewById(R.id.tv_listen_big);
+            tvTimeShortMusic = (TextView) root.findViewById(R.id.tv_time_short_music);
+            tvListenMusic = (TextView) root.findViewById(R.id.tv_listen_music);
             tvRecState = (TextView) root.findViewById(R.id.tv_rec_state);
             rowRecord = root.findViewById(R.id.row_record);
             rowTime = root.findViewById(R.id.row_time);
+            rowAlarm = root.findViewById(R.id.row_alarm);
+            btnSetAlarm = (TextView) root.findViewById(R.id.btn_set_alarm);
+            btnAlarmFromSong = (TextView) root.findViewById(R.id.btn_alarm_from_song);
             ly1 = (TextView) root.findViewById(R.id.ly1);
             ly2 = (TextView) root.findViewById(R.id.ly2);
             ly3 = (TextView) root.findViewById(R.id.ly3);
@@ -309,8 +295,11 @@ public class IslandService extends Service {
             notifTitle = (TextView) root.findViewById(R.id.notif_title);
             notifText = (TextView) root.findViewById(R.id.notif_text);
             btnNotifClose = (TextView) root.findViewById(R.id.btn_notif_close);
+            recTitle = (TextView) root.findViewById(R.id.rec_title);
+            recTime = (TextView) root.findViewById(R.id.rec_time);
+            recStop = (TextView) root.findViewById(R.id.rec_stop);
+            recDot = root.findViewById(R.id.rec_dot);
 
-            // 点击岛 = 展开/收回
             if (mainIsland != null) mainIsland.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View v) { toggle(); }
             });
@@ -326,17 +315,23 @@ public class IslandService extends Service {
             if (btnNotifClose != null) btnNotifClose.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View v) { Haptic.tap(v); dismissNotif(); }
             });
-
-            // 录屏按钮
+            if (recIsland != null) recIsland.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { openRecord(); }
+            });
+            if (recStop != null) recStop.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { Haptic.tap(v); stopRecord(); }
+            });
             if (rowRecord != null) rowRecord.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) {
-                    Haptic.tap(v); Anim.pressLight(v);
-                    try {
-                        Intent i = new Intent(IslandService.this, RecordActivity.class);
-                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(i);
-                    } catch (Throwable ignored) {}
-                }
+                @Override public void onClick(View v) { Haptic.tap(v); openRecord(); }
+            });
+            if (rowAlarm != null) rowAlarm.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { Haptic.tap(v); openAlarm(); }
+            });
+            if (btnSetAlarm != null) btnSetAlarm.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { Haptic.tap(v); setAsAlarm(); }
+            });
+            if (btnAlarmFromSong != null) btnAlarmFromSong.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { Haptic.tap(v); Anim.pressLight(v); setAsAlarm(); }
             });
 
             View bp = root.findViewById(R.id.btn_prev);
@@ -355,14 +350,11 @@ public class IslandService extends Service {
                     | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                     | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
                 PixelFormat.TRANSLUCENT);
-            // ★ 关键：居中显示
             params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-            params.x = 0;
-            params.y = getSafeTop() + dp(2);
+            params.x = 0; params.y = getSafeTop() + dp(2);
             wm.addView(root, params);
             applyWindowSize(mainW, foldH, false);
-            refreshMode();
-            refreshTime();
+            refreshMode(); refreshTime();
         } catch (Throwable t) { stopSelf(); }
     }
 
@@ -387,8 +379,98 @@ public class IslandService extends Service {
         try {
             int sec = Prefs.getInt("total_play_seconds", 0);
             int min = sec / 60;
-            if (tvTimeShort != null) tvTimeShort.setText("♪ " + min + "min");
+            if (tvTimeShort != null) tvTimeShort.setText("♪" + min + "m");
             if (tvListenBig != null) tvListenBig.setText(min + " 分钟");
+            if (tvTimeShortMusic != null) tvTimeShortMusic.setText("♪" + min + "m");
+            if (tvListenMusic != null) tvListenMusic.setText(min + " 分钟");
+        } catch (Throwable ignored) {}
+    }
+
+    private void setAsAlarm() {
+        Song s = currentSong != null ? currentSong : MusicService.getCurrent();
+        if (s == null) { Toast.makeText(this, "请先播放一首歌", Toast.LENGTH_SHORT).show(); return; }
+        boolean ok = RingtoneHelper.setAsAlarm(this, s);
+        Haptic.done(this);
+        Toast.makeText(this, ok ? "已设为闹钟铃声: " + s.title : "设置失败", Toast.LENGTH_LONG).show();
+    }
+    private void openRecord() { try { Intent i = new Intent(this, RecordActivity.class); i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK); startActivity(i); } catch (Throwable ignored) {} }
+    private void openAlarm() { try { Intent i = new Intent(this, AlarmActivity.class); i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK); startActivity(i); } catch (Throwable ignored) {} }
+    private void stopRecord() {
+        try { Intent i = new Intent(this, ScreenRecordService.class); i.setAction(ScreenRecordService.ACTION_STOP); startService(i); }
+        catch (Throwable ignored) {}
+    }
+
+    private void showRecIsland() {
+        try {
+            if (recIsland == null || mainIsland == null || recShowing) return;
+            recShowing = true; recActive = true; recStartMs = System.currentTimeMillis();
+            if (recBackdrop != null) recBackdrop.setMode(2);
+            if (isExpanded) setExpanded(false);
+            ViewGroup.LayoutParams lp = recIsland.getLayoutParams();
+            lp.width = mainW; lp.height = foldH; recIsland.setLayoutParams(lp);
+            recIsland.setTranslationX(0); recIsland.setAlpha(0f); recIsland.setVisibility(View.VISIBLE);
+            mainIsland.setTranslationX(0); mainIsland.setAlpha(1f);
+            if (recAnim != null && recAnim.isRunning()) recAnim.cancel();
+            recAnim = ValueAnimator.ofFloat(0f, 2f);
+            recAnim.setDuration(SPLIT_MS + SPLIT_BACK_MS);
+            recAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override public void onAnimationUpdate(ValueAnimator a) {
+                    float v = (float) a.getAnimatedValue();
+                    if (v <= 1f) {
+                        float p = EASE_ELASTIC.getInterpolation(v);
+                        recIsland.setTranslationX(splitPx * p);
+                        recIsland.setAlpha(Math.min(1f, v * 2f));
+                    } else {
+                        float p = EASE_SMOOTH.getInterpolation(v - 1f);
+                        recIsland.setTranslationX(splitPx * (1f - p));
+                        recIsland.setAlpha(1f);
+                        mainIsland.setAlpha(1f - p);
+                    }
+                }
+            });
+            recAnim.start();
+            ui.post(recTickRunnable);
+        } catch (Throwable ignored) {}
+    }
+    private final Runnable recTickRunnable = new Runnable() {
+        @Override public void run() {
+            if (!recActive) return;
+            long sec = (System.currentTimeMillis() - recStartMs) / 1000L;
+            if (recTime != null) recTime.setText(String.format(Locale.getDefault(), "%02d:%02d", sec / 60, sec % 60));
+            ui.postDelayed(this, 500);
+        }
+    };
+    private void dismissRecIsland() {
+        try {
+            if (recIsland == null || !recShowing) return;
+            recShowing = false; recActive = false;
+            ui.removeCallbacks(recTickRunnable);
+            if (recAnim != null && recAnim.isRunning()) recAnim.cancel();
+            recAnim = ValueAnimator.ofFloat(0f, 2f);
+            recAnim.setDuration(SPLIT_MS + SPLIT_BACK_MS);
+            recAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override public void onAnimationUpdate(ValueAnimator a) {
+                    float v = (float) a.getAnimatedValue();
+                    if (v <= 1f) {
+                        float p = EASE_ELASTIC.getInterpolation(v);
+                        recIsland.setTranslationX(-splitPx * p);
+                        recIsland.setAlpha(1f - v * 0.5f);
+                    } else {
+                        float p = EASE_SMOOTH.getInterpolation(v - 1f);
+                        recIsland.setTranslationX(-splitPx * (1f - p));
+                        recIsland.setAlpha(0.5f * (1f - p));
+                        mainIsland.setAlpha(p);
+                    }
+                }
+            });
+            recAnim.addListener(new AnimatorListenerAdapter() {
+                @Override public void onAnimationEnd(Animator a) {
+                    if (recIsland != null) { recIsland.setVisibility(View.GONE); recIsland.setTranslationX(0); recIsland.setAlpha(0f); }
+                    if (mainIsland != null) { mainIsland.setAlpha(1f); mainIsland.setTranslationX(0); }
+                    if (mainBackdrop != null) mainBackdrop.setMode(charging ? 2 : (musicMode ? 1 : 0));
+                }
+            });
+            recAnim.start();
         } catch (Throwable ignored) {}
     }
 
@@ -404,8 +486,7 @@ public class IslandService extends Service {
             }
             if (sizeAnim != null && sizeAnim.isRunning()) sizeAnim.cancel();
             sizeAnim = ValueAnimator.ofFloat(0f, 1f);
-            sizeAnim.setDuration(SPLIT_OUT_MS);
-            sizeAnim.setInterpolator(EASE_OPEN);
+            sizeAnim.setDuration(SPLIT_MS); sizeAnim.setInterpolator(EASE_OPEN);
             final int fw = w, fh = h;
             sizeAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override public void onAnimationUpdate(ValueAnimator a) {
@@ -420,58 +501,45 @@ public class IslandService extends Service {
             sizeAnim.start();
         } catch (Throwable ignored) {}
     }
-
     private void setChildSizes(int w, int h) {
         try {
-            if (mainIsland != null) {
-                ViewGroup.LayoutParams lp = mainIsland.getLayoutParams();
-                if (lp.width != w) { lp.width = w; mainIsland.setLayoutParams(lp); }
-                if (lp.height != h) { lp.height = h; mainIsland.setLayoutParams(lp); }
-            }
-            if (notifIsland != null) {
-                ViewGroup.LayoutParams lp = notifIsland.getLayoutParams();
-                if (lp.width != w) { lp.width = w; notifIsland.setLayoutParams(lp); }
-                if (lp.height != h) { lp.height = h; notifIsland.setLayoutParams(lp); }
+            View[] kids = new View[]{mainIsland, notifIsland, recIsland};
+            for (View v : kids) {
+                if (v == null) continue;
+                ViewGroup.LayoutParams lp = v.getLayoutParams();
+                if (lp.width != w) { lp.width = w; v.setLayoutParams(lp); }
+                if (lp.height != h) { lp.height = h; v.setLayoutParams(lp); }
             }
         } catch (Throwable ignored) {}
     }
-
     private void updateRadius(int h) {
         try {
             final float r = isExpanded ? dp(24) : Math.min(dp(22), h / 2f);
-            if (mainIsland != null) {
-                mainIsland.setOutlineProvider(new ViewOutlineProvider() { @Override public void getOutline(View v, Outline o) { o.setRoundRect(0, 0, v.getWidth(), v.getHeight(), r); } });
-                mainIsland.setClipToOutline(true);
+            View[] backs = new View[]{mainIsland, notifIsland, recIsland};
+            for (View v : backs) {
+                if (v == null) continue;
+                v.setOutlineProvider(new ViewOutlineProvider() { @Override public void getOutline(View x, Outline o) { o.setRoundRect(0, 0, x.getWidth(), x.getHeight(), r); } });
+                v.setClipToOutline(true);
             }
             if (mainBackdrop != null) mainBackdrop.setCornerRadius(r);
-            if (notifIsland != null) {
-                notifIsland.setOutlineProvider(new ViewOutlineProvider() { @Override public void getOutline(View v, Outline o) { o.setRoundRect(0, 0, v.getWidth(), v.getHeight(), r); } });
-                notifIsland.setClipToOutline(true);
-            }
             if (notifBackdrop != null) notifBackdrop.setCornerRadius(r);
+            if (recBackdrop != null) recBackdrop.setCornerRadius(r);
         } catch (Throwable ignored) {}
     }
 
     private void toggle() {
         if (notifShowing) { dismissNotif(); return; }
+        if (recShowing) { openRecord(); return; }
         setExpanded(!isExpanded);
     }
 
-    // ★ 分列式逐行入场动画
     private void animateRowsIn() {
-        View[] rows = new View[]{tvTimeBig, tvDateBig, rowRecord, rowTime};
-        // 音乐模式
+        View[] rows = new View[]{tvTimeBig, tvDateBig, rowAlarm, rowRecord, rowTime};
         if (musicMode) rows = new View[]{ivCoverBig, ly1, ly2, ly3, ly4, ly5, progress};
         for (int i = 0; i < rows.length; i++) {
-            View v = rows[i];
-            if (v == null) continue;
-            v.setAlpha(0f);
-            v.setTranslationY(30f);
-            v.animate().alpha(1f).translationY(0f)
-                .setDuration(360)
-                .setStartDelay(60L * i)
-                .setInterpolator(EASE_ROW)
-                .start();
+            View v = rows[i]; if (v == null) continue;
+            v.setAlpha(0f); v.setTranslationY(30f);
+            v.animate().alpha(1f).translationY(0f).setDuration(360).setStartDelay(60L * i).setInterpolator(EASE_ROW).start();
         }
     }
 
@@ -480,37 +548,27 @@ public class IslandService extends Service {
             if (isExpanded == exp) return;
             isExpanded = exp;
             if (exp) {
-                Haptic.expand(this);
-                refreshTime();
+                Haptic.expand(this); refreshTime();
                 if (expandedView != null) {
                     expandedView.setVisibility(View.VISIBLE);
-                    expandedView.setAlpha(0f);
-                    expandedView.setScaleX(0.96f); expandedView.setScaleY(0.96f);
-                    expandedView.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(SPLIT_OUT_MS).setInterpolator(EASE_OPEN).start();
+                    expandedView.setAlpha(0f); expandedView.setScaleX(0.96f); expandedView.setScaleY(0.96f);
+                    expandedView.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(SPLIT_MS).setInterpolator(EASE_OPEN).start();
                 }
-                if (btnCloseExpanded != null) {
-                    btnCloseExpanded.setVisibility(View.VISIBLE);
-                    btnCloseExpanded.setAlpha(0f);
-                    btnCloseExpanded.animate().alpha(1f).setDuration(300).start();
-                }
+                if (btnCloseExpanded != null) { btnCloseExpanded.setVisibility(View.VISIBLE); btnCloseExpanded.setAlpha(0f); btnCloseExpanded.animate().alpha(1f).setDuration(300).start(); }
                 View c = visibleCollapsed();
-                if (c != null) c.animate().alpha(0f).setDuration(SPLIT_OUT_MS / 3).withEndAction(new Runnable() { @Override public void run() { View cc = visibleCollapsed(); if (cc != null) { cc.setVisibility(View.GONE); cc.setAlpha(1f); } } }).start();
+                if (c != null) c.animate().alpha(0f).setDuration(SPLIT_MS / 3).withEndAction(new Runnable() { @Override public void run() { View cc = visibleCollapsed(); if (cc != null) { cc.setVisibility(View.GONE); cc.setAlpha(1f); } } }).start();
                 applyWindowSize(expW, expH, true);
-                // 延迟启动行入场
-                ui.postDelayed(new Runnable() {
-                    @Override public void run() { animateRowsIn(); }
-                }, 60);
+                ui.postDelayed(new Runnable() { @Override public void run() { animateRowsIn(); } }, 60);
             } else {
                 Haptic.collapse(this);
                 View c = visibleCollapsed();
-                if (c != null) { c.setVisibility(View.VISIBLE); c.setAlpha(0f); c.animate().alpha(1f).setDuration(SPLIT_OUT_MS).setInterpolator(EASE_SMOOTH).start(); }
-                if (expandedView != null) expandedView.animate().alpha(0f).scaleX(0.96f).scaleY(0.96f).setDuration(SPLIT_OUT_MS / 2).setInterpolator(EASE_SOFT).withEndAction(new Runnable() { @Override public void run() { if (expandedView != null) { expandedView.setVisibility(View.GONE); expandedView.setAlpha(1f); expandedView.setScaleX(1f); expandedView.setScaleY(1f); } } }).start();
+                if (c != null) { c.setVisibility(View.VISIBLE); c.setAlpha(0f); c.animate().alpha(1f).setDuration(SPLIT_MS).setInterpolator(EASE_SMOOTH).start(); }
+                if (expandedView != null) expandedView.animate().alpha(0f).scaleX(0.96f).scaleY(0.96f).setDuration(SPLIT_MS / 2).setInterpolator(EASE_SOFT).withEndAction(new Runnable() { @Override public void run() { if (expandedView != null) { expandedView.setVisibility(View.GONE); expandedView.setAlpha(1f); expandedView.setScaleX(1f); expandedView.setScaleY(1f); } } }).start();
                 if (btnCloseExpanded != null) btnCloseExpanded.animate().alpha(0f).setDuration(200).withEndAction(new Runnable() { @Override public void run() { if (btnCloseExpanded != null) btnCloseExpanded.setVisibility(View.GONE); } }).start();
                 applyWindowSize(mainW, foldH, true);
             }
         } catch (Throwable ignored) {}
     }
-
     private View visibleCollapsed() {
         if (collapsedLife != null && collapsedLife.getVisibility() == View.VISIBLE) return collapsedLife;
         if (collapsedMusic != null && collapsedMusic.getVisibility() == View.VISIBLE) return collapsedMusic;
@@ -521,15 +579,10 @@ public class IslandService extends Service {
     private void showNotif(String title, String text) {
         try {
             if (notifIsland == null || mainIsland == null) return;
-            if (notifShowing) {
-                pendingTitle = title; pendingText = text;
-                dismissNotif();
-                return;
-            }
+            if (notifShowing) { pendingTitle = title; pendingText = text; dismissNotif(); return; }
             reallyShowNotif(title, text);
         } catch (Throwable ignored) {}
     }
-
     private void reallyShowNotif(String title, String text) {
         try {
             if (notifTitle != null) notifTitle.setText(title == null ? "通知" : title);
@@ -541,14 +594,11 @@ public class IslandService extends Service {
             notifShowing = true;
             Haptic.notify(this);
             if (isExpanded) setExpanded(false);
-            notifIsland.setTranslationX(0);
-            notifIsland.setAlpha(0f);
-            notifIsland.setVisibility(View.VISIBLE);
-            mainIsland.setTranslationX(0);
-            mainIsland.setAlpha(1f);
+            notifIsland.setTranslationX(0); notifIsland.setAlpha(0f); notifIsland.setVisibility(View.VISIBLE);
+            mainIsland.setTranslationX(0); mainIsland.setAlpha(1f);
             if (notifAnim != null && notifAnim.isRunning()) notifAnim.cancel();
             notifAnim = ValueAnimator.ofFloat(0f, 2f);
-            notifAnim.setDuration(SPLIT_OUT_MS + SPLIT_BACK_MS);
+            notifAnim.setDuration(SPLIT_MS + SPLIT_BACK_MS);
             notifAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override public void onAnimationUpdate(ValueAnimator a) {
                     float v = (float) a.getAnimatedValue();
@@ -566,10 +616,9 @@ public class IslandService extends Service {
             });
             notifAnim.start();
             ui.removeCallbacks(hideNotif);
-            ui.postDelayed(hideNotif, notifDuration + SPLIT_OUT_MS + SPLIT_BACK_MS);
+            ui.postDelayed(hideNotif, notifDuration + SPLIT_MS + SPLIT_BACK_MS);
         } catch (Throwable ignored) {}
     }
-
     private void dismissNotif() {
         try {
             if (!notifShowing) return;
@@ -577,7 +626,7 @@ public class IslandService extends Service {
             Haptic.swipe(this);
             if (notifAnim != null && notifAnim.isRunning()) notifAnim.cancel();
             notifAnim = ValueAnimator.ofFloat(0f, 2f);
-            notifAnim.setDuration(SPLIT_OUT_MS + SPLIT_BACK_MS);
+            notifAnim.setDuration(SPLIT_MS + SPLIT_BACK_MS);
             notifAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override public void onAnimationUpdate(ValueAnimator a) {
                     float v = (float) a.getAnimatedValue();
@@ -594,17 +643,14 @@ public class IslandService extends Service {
                 }
             });
             notifAnim.addListener(new AnimatorListenerAdapter() {
-                @Override public void onAnimationEnd(Animator animation) {
+                @Override public void onAnimationEnd(Animator a) {
                     if (notifIsland != null) { notifIsland.setVisibility(View.GONE); notifIsland.setTranslationX(0); notifIsland.setAlpha(0f); }
                     if (mainIsland != null) { mainIsland.setAlpha(1f); mainIsland.setTranslationX(0); }
                     if (mainBackdrop != null) mainBackdrop.setMode(charging ? 2 : (musicMode ? 1 : 0));
                     if (pendingTitle != null || pendingText != null) {
-                        final String t = pendingTitle;
-                        final String x = pendingText;
+                        final String t = pendingTitle; final String x = pendingText;
                         pendingTitle = null; pendingText = null;
-                        ui.postDelayed(new Runnable() {
-                            @Override public void run() { reallyShowNotif(t, x); }
-                        }, 200);
+                        ui.postDelayed(new Runnable() { @Override public void run() { reallyShowNotif(t, x); } }, 200);
                     }
                 }
             });
@@ -672,17 +718,15 @@ public class IslandService extends Service {
             if (idx < 0) return;
             Lyr cur = lyrics.get(idx);
             if (tvLyricMini != null) tvLyricMini.setText(cur.s);
-            if (tvLyric2Mini != null) { if (idx + 1 < lyrics.size()) tvLyric2Mini.setText(lyrics.get(idx + 1).s); else tvLyric2Mini.setText(""); }
             TextView[] lv = new TextView[]{ly1, ly2, ly3, ly4, ly5};
             for (int k = -2; k <= 2; k++) {
                 int j = idx + k;
-                TextView v = lv[k + 2];
-                if (v == null) continue;
+                TextView v = lv[k + 2]; if (v == null) continue;
                 if (j >= 0 && j < lyrics.size()) {
                     v.setText(lyrics.get(j).s);
-                    if (k == 0) { v.setAlpha(1f); v.setTextSize(15f); }
-                    else if (k == -1 || k == 1) { v.setAlpha(0.7f); v.setTextSize(13f); }
-                    else { v.setAlpha(0.35f); v.setTextSize(13f); }
+                    if (k == 0) { v.setAlpha(1f); v.setTextSize(14f); }
+                    else if (k == -1 || k == 1) { v.setAlpha(0.7f); v.setTextSize(12f); }
+                    else { v.setAlpha(0.35f); v.setTextSize(12f); }
                 } else { v.setText(""); }
             }
         } catch (Throwable ignored) {}
@@ -698,14 +742,13 @@ public class IslandService extends Service {
                     if (tvTimeMini != null) tvTimeMini.setText(tf.format(n));
                     if (tvTimeBig != null) tvTimeBig.setText(tf.format(n));
                     if (tvDateBig != null) tvDateBig.setText(dfL.format(n));
-                    if (tvDateMini != null && !musicMode && !downloadMode && !notifShowing) tvDateMini.setText(df.format(n));
+                    if (tvDateMini != null && !musicMode && !downloadMode && !notifShowing && !recShowing) tvDateMini.setText(df.format(n));
                     if (tvAlarmBig != null) {
                         int h = Prefs.getInt("alarm_hour", -1), m = Prefs.getInt("alarm_min", -1);
                         tvAlarmBig.setText((h < 0 || m < 0) ? "未设置闹钟" : String.format(Locale.getDefault(), "闹钟 %02d:%02d", h, m));
                     }
                 } catch (Throwable ignored) {}
-                tickLyrics();
-                refreshTime();
+                tickLyrics(); refreshTime();
                 ui.postDelayed(this, 1000);
             }
         });
@@ -713,8 +756,8 @@ public class IslandService extends Service {
     @Override public void onConfigurationChanged(Configuration c) {
         super.onConfigurationChanged(c);
         screenWidth = getResources().getDisplayMetrics().widthPixels;
-        mainW = Math.min(dp(230), (int)(screenWidth * 0.60f));
-        expW = (int)(screenWidth * 0.92f);
+        mainW = (int)(screenWidth * Prefs.getFloat("collapsed_width_percent", 0.62f));
+        expW = (int)(screenWidth * Prefs.getFloat("expanded_width_percent", 0.92f));
         splitPx = (int)(screenWidth * 0.34f);
         if (isExpanded) applyWindowSize(expW, expH, false);
         else applyWindowSize(mainW, foldH, false);
@@ -722,7 +765,8 @@ public class IslandService extends Service {
     @Override public int onStartCommand(Intent i, int f, int s) {
         if (i == null) return START_STICKY;
         String a = i.getAction();
-        if ("TEST_NOTIFY".equals(a)) showNotif("测试通知", "这是一条比较长的通知文字用来测试灵动岛滚动和动态时长");
+        if ("TEST_NOTIFY".equals(a)) showNotif("测试通知", "这是一条比较长的通知文字用来测试灵动岛");
+        else if ("TEST_REC".equals(a)) showRecIsland();
         else if ("REFRESH_SIZE".equals(a)) {
             if (isExpanded) applyWindowSize(expW, expH, false);
             else applyWindowSize(mainW, foldH, false);
@@ -731,9 +775,9 @@ public class IslandService extends Service {
     }
     @Override public void onDestroy() {
         super.onDestroy();
-        ui.removeCallbacks(idleSwitch);
-        ui.removeCallbacks(hideNotif);
+        ui.removeCallbacks(idleSwitch); ui.removeCallbacks(hideNotif); ui.removeCallbacks(recTickRunnable);
         if (notifAnim != null) notifAnim.cancel();
+        if (recAnim != null) recAnim.cancel();
         if (sizeAnim != null) sizeAnim.cancel();
         try { unregisterReceiver(rx); } catch (Throwable ignored) {}
         if (root != null && wm != null) { try { wm.removeView(root); } catch (Throwable ignored) {} root = null; }
