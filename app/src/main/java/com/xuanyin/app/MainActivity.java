@@ -1,7 +1,6 @@
 package com.xuanyin.app;
 import android.Manifest;
 import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -35,54 +34,66 @@ public class MainActivity extends AppCompatActivity {
     private ImageView bg;
 
     @Override protected void onCreate(Bundle b) {
-        super.onCreate(b);
-        setContentView(R.layout.activity_main);
-        if (!Prefs.getBoolean("announced_v19", false)) {
-            startActivity(new Intent(this, AnnouncementActivity.class));
-            Prefs.put("announced_v19", true);
+        try { super.onCreate(b); } catch (Throwable t) { finish(); return; }
+        try {
+            setContentView(R.layout.activity_main);
+        } catch (Throwable t) { finish(); return; }
+
+        if (!Prefs.getBoolean("announced_v20", false)) {
+            Prefs.put("announced_v20", true);
+            try { startActivity(new Intent(this, AnnouncementActivity.class)); } catch (Throwable ignored) {}
         }
-        bg = findViewById(R.id.iv_bg);
-        ((TextView) findViewById(R.id.tv_greet)).setText(WarmGreeting.greeting());
-        ((TextView) findViewById(R.id.tv_sub_greet)).setText(WarmGreeting.subGreeting());
-        ((TextView) findViewById(R.id.tv_quote)).setText(WarmGreeting.quote());
-        WallpaperHelper.loadBackground(this, bg);
+
+        bg = (ImageView) findViewById(R.id.iv_bg);
+        setText(R.id.tv_greet, WarmGreeting.greeting());
+        setText(R.id.tv_sub_greet, WarmGreeting.subGreeting());
+        setText(R.id.tv_quote, WarmGreeting.quote());
+        try { WallpaperHelper.loadBackground(this, bg); } catch (Throwable ignored) {}
 
         pageLocal = findViewById(R.id.page_local);
         pageOnline = findViewById(R.id.page_online);
-        tabLocal = findViewById(R.id.tab_local);
-        tabOnline = findViewById(R.id.tab_online);
+        tabLocal = (TextView) findViewById(R.id.tab_local);
+        tabOnline = (TextView) findViewById(R.id.tab_online);
         indicator = findViewById(R.id.tab_indicator);
 
-        setupRecycler((RecyclerView) findViewById(R.id.rv_local), true);
-        setupRecycler((RecyclerView) findViewById(R.id.rv_online), false);
+        try { setupRecycler((RecyclerView) findViewById(R.id.rv_local), true); } catch (Throwable ignored) {}
+        try { setupRecycler((RecyclerView) findViewById(R.id.rv_online), false); } catch (Throwable ignored) {}
 
-        tabLocal.setOnClickListener(v -> switchTab(0));
-        tabOnline.setOnClickListener(v -> switchTab(1));
+        if (tabLocal != null) tabLocal.setOnClickListener(v -> { Haptic.tap(v); switchTab(0); });
+        if (tabOnline != null) tabOnline.setOnClickListener(v -> { Haptic.tap(v); switchTab(1); });
 
         Anim.enter(findViewById(R.id.card_greet), 0);
         Anim.enter(findViewById(R.id.card_actions), 70);
         Anim.enter(findViewById(R.id.card_search), 140);
         Anim.enter(findViewById(R.id.tab_bar), 200);
 
-        findViewById(R.id.btn_local).setOnClickListener(v -> {
-            Haptic.tap(v); Anim.press(v); switchTab(0);
-        });
-        findViewById(R.id.btn_island).setOnClickListener(v -> {
-            Haptic.tap(v); Anim.press(v); ensureOverlay();
-        });
-        findViewById(R.id.btn_settings).setOnClickListener(v -> {
-            Haptic.tap(v); Anim.press(v);
+        bind(R.id.btn_local, () -> switchTab(0));
+        bind(R.id.btn_island, this::ensureOverlay);
+        bind(R.id.btn_settings, () -> {
             startActivity(new Intent(this, SettingsActivity.class));
             overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
         });
-        findViewById(R.id.card_search).setOnClickListener(v -> {
-            Haptic.tap(v); Anim.pressLight(v); searchDialog();
-        });
+        bind(R.id.card_search, this::searchDialog);
 
-        tabLocal.post(() -> moveIndicator(0, false));
-        reqAndScan();
+        if (tabLocal != null) tabLocal.post(() -> moveIndicator(0, false));
+
+        try { reqAndScan(); } catch (Throwable ignored) {}
+    }
+    private void setText(int id, String s) {
+        try {
+            TextView t = findViewById(id);
+            if (t != null) t.setText(s);
+        } catch (Throwable ignored) {}
+    }
+    private void bind(int id, Runnable r) {
+        try {
+            View v = findViewById(id);
+            if (v == null) return;
+            v.setOnClickListener(x -> { Haptic.tap(v); Anim.press(v); r.run(); });
+        } catch (Throwable ignored) {}
     }
     private void setupRecycler(RecyclerView rv, boolean isLocal) {
+        if (rv == null) return;
         LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setInitialPrefetchItemCount(10);
         rv.setLayoutManager(lm);
@@ -96,18 +107,23 @@ public class MainActivity extends AppCompatActivity {
         rv.setAdapter(ad);
     }
     private void playLocal(int pos) {
-        MusicService.playList(this, localSongs, pos);
-        startActivity(new Intent(this, PlayerActivity.class));
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+        try {
+            MusicService.playList(this, localSongs, pos);
+            startActivity(new Intent(this, PlayerActivity.class));
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+        } catch (Throwable ignored) {}
     }
     private void playOnline(int pos) {
-        MusicService.playList(this, onlineSongs, pos);
-        startActivity(new Intent(this, PlayerActivity.class));
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+        try {
+            MusicService.playList(this, onlineSongs, pos);
+            startActivity(new Intent(this, PlayerActivity.class));
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+        } catch (Throwable ignored) {}
     }
 
     private void switchTab(int tab) {
         if (animating || tab == currentTab) return;
+        if (pageLocal == null || pageOnline == null) return;
         animating = true;
         Haptic.swipe(this);
         View in = tab == 0 ? pageLocal : pageOnline;
@@ -117,26 +133,25 @@ public class MainActivity extends AppCompatActivity {
 
         out.setVisibility(View.VISIBLE);
         out.setAlpha(1f);
-        float dir = toRight ? -1f : 1f;
-        out.setTranslationX(0);
-        out.setScaleX(1f); out.setScaleY(1f);
 
         ObjectAnimator outA = ObjectAnimator.ofFloat(out, "alpha", 1f, 0f);
-        outA.setDuration(420);
+        outA.setDuration(380);
         outA.setInterpolator(new AccelerateInterpolator(1.4f));
 
+        float dir = toRight ? -1f : 1f;
         in.setVisibility(View.VISIBLE);
         in.setAlpha(0f);
-        in.setTranslationX(dir * in.getWidth() * 0.25f);
-        in.setScaleX(0.92f); in.setScaleY(0.92f);
+        in.setTranslationX(dir * (in.getWidth() > 0 ? in.getWidth() * 0.22f : 200f));
+        in.setScaleX(0.93f); in.setScaleY(0.93f);
 
         ObjectAnimator inA = ObjectAnimator.ofFloat(in, "alpha", 0f, 1f);
-        inA.setDuration(560);
-        inA.setStartDelay(80);
-        inA.setInterpolator(new DecelerateInterpolator(1.6f));
+        inA.setDuration(520);
+        inA.setStartDelay(70);
+        inA.setInterpolator(new DecelerateInterpolator(1.7f));
+
         in.animate().translationX(0).scaleX(1f).scaleY(1f)
-            .setDuration(560).setStartDelay(80)
-            .setInterpolator(new DecelerateInterpolator(1.6f)).start();
+            .setDuration(520).setStartDelay(70)
+            .setInterpolator(new DecelerateInterpolator(1.7f)).start();
 
         ValueAnimatorProxy.run(out, in, () -> {
             out.setVisibility(View.GONE);
@@ -146,15 +161,16 @@ public class MainActivity extends AppCompatActivity {
         outA.start(); inA.start();
     }
     private void moveIndicator(int tab, boolean animate) {
+        if (indicator == null || tabLocal == null) return;
         int w = tabLocal.getWidth();
         if (w == 0) { tabLocal.post(() -> moveIndicator(tab, animate)); return; }
         float target = tab * w;
         if (animate) {
             indicator.animate().translationX(target)
-                .setDuration(360).setInterpolator(new OvershootInterpolator(1.1f)).start();
+                .setDuration(340).setInterpolator(new OvershootInterpolator(1.1f)).start();
         } else indicator.setTranslationX(target);
-        tabLocal.animate().alpha(tab == 0 ? 1f : 0.5f).setDuration(280).start();
-        tabOnline.animate().alpha(tab == 1 ? 1f : 0.5f).setDuration(280).start();
+        if (tabLocal != null) tabLocal.animate().alpha(tab == 0 ? 1f : 0.5f).setDuration(260).start();
+        if (tabOnline != null) tabOnline.animate().alpha(tab == 1 ? 1f : 0.5f).setDuration(260).start();
     }
 
     private void reqAndScan() {
@@ -170,11 +186,13 @@ public class MainActivity extends AppCompatActivity {
     }
     private void scan() {
         new Thread(() -> {
-            List<Song> l = MusicScanner.scan(this);
-            new Handler(Looper.getMainLooper()).post(() -> {
-                localSongs.clear(); localSongs.addAll(l);
-                if (localAdapter != null) localAdapter.notifyDataSetChanged();
-            });
+            try {
+                List<Song> l = MusicScanner.scan(this);
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    localSongs.clear(); localSongs.addAll(l);
+                    if (localAdapter != null) localAdapter.notifyDataSetChanged();
+                });
+            } catch (Throwable ignored) {}
         }).start();
     }
     private void ensureOverlay() {
@@ -184,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "请授予悬浮窗权限", Toast.LENGTH_LONG).show();
             return;
         }
-        startService(new Intent(this, IslandService.class));
+        try { startService(new Intent(this, IslandService.class)); } catch (Throwable ignored) {}
         Haptic.done(this);
         Toast.makeText(this, "玄音·灵动岛已启动", Toast.LENGTH_SHORT).show();
     }
@@ -203,5 +221,8 @@ public class MainActivity extends AppCompatActivity {
             d.getWindow().setDimAmount(0.6f);
         }
     }
-    @Override protected void onResume() { super.onResume(); WallpaperHelper.loadBackground(this, bg); }
+    @Override protected void onResume() {
+        super.onResume();
+        try { WallpaperHelper.loadBackground(this, bg); } catch (Throwable ignored) {}
+    }
 }
