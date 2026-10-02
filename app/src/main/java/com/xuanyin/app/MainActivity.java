@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private final List<Song> onlineSongs = new ArrayList<>();
     private SongAdapter localAdapter, onlineAdapter;
     private View pageLocal, pageOnline;
-    private TextView tabLocal, tabOnline;
+    private View tabLocal, tabOnline;
     private View indicator;
     private int currentTab = 0;
     private boolean animating = false;
@@ -52,8 +52,8 @@ public class MainActivity extends AppCompatActivity {
 
         pageLocal = findViewById(R.id.page_local);
         pageOnline = findViewById(R.id.page_online);
-        tabLocal = (TextView) findViewById(R.id.tab_local);
-        tabOnline = (TextView) findViewById(R.id.tab_online);
+        tabLocal = findViewById(R.id.tab_local);
+        tabOnline = findViewById(R.id.tab_online);
         indicator = findViewById(R.id.tab_indicator);
 
         try { setupRecycler((RecyclerView) findViewById(R.id.rv_local), true); } catch (Throwable ignored) {}
