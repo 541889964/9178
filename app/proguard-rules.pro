@@ -1,7 +1,3 @@
--keep class com.xuanyin.app.** { *; }
--keep class androidx.media3.** { *; }
--dontwarn okhttp3.**
--dontwarn okio.**
--optimizationpasses 5
--allowaccessmodification
--keepattributes *Annotation*
+-keep class org.nanohttpd.** { *; }
+-keep class com.google.zxing.** { *; }
+-dontwarn org.nanohttpd.**

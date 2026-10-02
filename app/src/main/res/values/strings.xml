@@ -1,2 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources><string name="app_name">玄音</string></resources>
+<resources>
+    <string name="app_name">家乡分享</string>
+</resources>
