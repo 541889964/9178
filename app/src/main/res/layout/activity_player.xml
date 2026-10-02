@@ -4,16 +4,16 @@
     android:background="@color/bg_deep">
     <com.xuanyin.app.widget.AuroraBackgroundView
         android:layout_width="match_parent" android:layout_height="match_parent" />
-    <ImageView android:id="@+id/pulse" android:layout_width="match_parent"
-        android:layout_height="match_parent" android:background="@drawable/bg_glow" android:alpha="0.5" />
     <LinearLayout android:orientation="vertical" android:padding="20dp"
         android:layout_width="match_parent" android:layout_height="match_parent">
         <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
             android:layout_width="match_parent" android:layout_height="wrap_content">
             <ImageView android:id="@+id/btn_back" android:layout_width="42dp"
                 android:layout_height="42dp" android:padding="10dp"
-                android:src="@android:drawable/ic_menu_revert" android:background="@drawable/bg_search" />
-            <View android:layout_width="0dp" android:layout_weight="1" android:layout_height="1dp" />
+                android:src="@android:drawable/ic_menu_revert"
+                android:background="@drawable/bg_search" />
+            <View android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="1dp" />
             <TextView android:id="@+id/tv_download_pct" android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:layout_marginEnd="10dp"
                 android:text="0%" android:textColor="#FF6B9D"

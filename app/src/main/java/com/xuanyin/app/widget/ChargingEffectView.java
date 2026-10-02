@@ -21,7 +21,8 @@ public class ChargingEffectView extends View {
     public ChargingEffectView(Context c, AttributeSet a, int d) { super(c, a, d); init(); }
     private void init() {
         p.setStyle(Paint.Style.FILL);
-        setClickable(false); setFocusable(false);
+        setClickable(false);
+        setFocusable(false);
     }
     public void setColor(int c) { color = c; invalidate(); }
     public void setActive(boolean b) {
@@ -29,7 +30,7 @@ public class ChargingEffectView extends View {
         active = b;
         if (b) {
             parts.clear();
-            for (int i = 0; i < 24; i++) {
+            for (int i = 0; i < 20; i++) {
                 P part = new P();
                 part.x = rnd.nextFloat();
                 part.y = rnd.nextFloat();

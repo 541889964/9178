@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/island_collapsed"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
     <LinearLayout android:id="@+id/group_life_mini"
         android:orientation="horizontal" android:gravity="center_vertical"
         android:paddingHorizontal="18dp"
@@ -9,7 +10,8 @@
         <TextView android:id="@+id/tv_time_mini"
             android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="14:30" android:textColor="#FFFFFF"
-            android:textSize="15sp" android:textStyle="bold" />
+            android:textSize="15sp" android:textStyle="bold"
+            android:maxLines="1" />
         <View android:layout_width="3dp" android:layout_height="3dp"
             android:layout_marginHorizontal="10dp" android:background="#55FFFFFF" />
         <TextView android:id="@+id/tv_collapsed_title"
@@ -18,7 +20,8 @@
             android:maxLines="1" android:ellipsize="end" />
         <TextView android:id="@+id/tv_battery_mini"
             android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="100%" android:textColor="#FFFFFF" android:textSize="12sp" />
+            android:text="100%" android:textColor="#FFFFFF" android:textSize="12sp"
+            android:maxLines="1" />
     </LinearLayout>
     <LinearLayout android:id="@+id/group_music_mini"
         android:orientation="horizontal" android:gravity="center_vertical"
@@ -31,8 +34,8 @@
                 android:layout_gravity="center" />
             <ImageView android:id="@+id/iv_cover_mini"
                 android:layout_width="28dp" android:layout_height="28dp"
-                android:layout_gravity="center" android:scaleType="centerCrop"
-                android:background="@drawable/bg_gradient_button" />
+                android:layout_gravity="center"
+                android:scaleType="centerCrop" />
         </FrameLayout>
         <LinearLayout android:orientation="vertical"
             android:layout_marginStart="10dp" android:layout_width="0dp"
@@ -69,7 +72,8 @@
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="⬇" android:textSize="16sp" android:textColor="#5AC8FA" />
         <LinearLayout android:orientation="vertical" android:layout_weight="1"
-            android:layout_marginStart="10dp" android:layout_width="0dp" android:layout_height="wrap_content">
+            android:layout_marginStart="10dp" android:layout_width="0dp"
+            android:layout_height="wrap_content">
             <TextView android:id="@+id/tv_dl_title_mini"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:text="下载中" android:textColor="#FFFFFF" android:textSize="12sp"

@@ -10,22 +10,26 @@ public class LyricLineView extends View {
     private String text = "";
     private float progress = 0f;
     private boolean current = false;
-    private float sizePx = 45f;
+    private float baseSize;
+    private float density;
     public LyricLineView(Context c) { super(c); init(); }
     public LyricLineView(Context c, AttributeSet a) { super(c, a); init(); }
     public LyricLineView(Context c, AttributeSet a, int d) { super(c, a, d); init(); }
     private void init() {
-        sizePx = 15f * getResources().getDisplayMetrics().scaledDensity;
+        density = getResources().getDisplayMetrics().scaledDensity;
+        baseSize = 15f * density;
         pBase.setColor(0xFFC9BFF5);
         pFill.setColor(0xFFFFFFFF);
-        pBase.setTextSize(sizePx);
-        pFill.setTextSize(sizePx);
-        setClickable(false); setFocusable(false);
+        pBase.setTextSize(baseSize);
+        pFill.setTextSize(baseSize);
+        setClickable(false);
+        setFocusable(false);
     }
     public void setText(String t) {
         if (t == null) t = "";
         if (t.equals(text)) return;
-        text = t; invalidate();
+        text = t;
+        invalidate();
     }
     public void setCurrent(boolean c) {
         if (current == c) return;
@@ -41,16 +45,31 @@ public class LyricLineView extends View {
     }
     public void setProgress(float p) {
         if (Math.abs(progress - p) < 0.005f) return;
-        progress = p; invalidate();
+        progress = p;
+        invalidate();
     }
     @Override protected void onDraw(Canvas cv) {
         super.onDraw(cv);
         if (text.isEmpty()) return;
-        float h = getHeight();
+        float w = getWidth(), h = getHeight();
+        if (w <= 0 || h <= 0) return;
+        float size = baseSize;
+        pBase.setTextSize(size);
+        float tw = pBase.measureText(text);
+        float maxW = w - 4f;
+        if (tw > maxW && tw > 0) {
+            size = size * maxW / tw;
+            float minS = 10f * density;
+            if (size < minS) size = minS;
+            pBase.setTextSize(size);
+            pFill.setTextSize(size);
+            tw = pBase.measureText(text);
+        } else {
+            pFill.setTextSize(size);
+        }
         float baseline = h / 2f - (pBase.descent() + pBase.ascent()) / 2f;
         cv.drawText(text, 0, baseline, pBase);
         if (!current || progress <= 0f) return;
-        float tw = pBase.measureText(text);
         cv.save();
         cv.clipRect(0, 0, tw * Math.min(1f, progress), h);
         cv.drawText(text, 0, baseline, pFill);

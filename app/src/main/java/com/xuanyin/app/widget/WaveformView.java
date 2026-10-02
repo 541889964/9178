@@ -1,7 +1,11 @@
 package com.xuanyin.app.widget;
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.graphics.*;
+import android.graphics.Canvas;
+import android.graphics.LinearGradient;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
@@ -22,7 +26,8 @@ public class WaveformView extends View {
     public WaveformView(Context c, AttributeSet a, int d) { super(c, a, d); init(); }
     private void init() {
         p.setStyle(Paint.Style.FILL);
-        setClickable(false); setFocusable(false);
+        setClickable(false);
+        setFocusable(false);
         for (int i = 0; i < bars; i++) { hs[i] = 0.35f; ts[i] = 0.35f; }
     }
     public void setActive(boolean b) {
@@ -56,6 +61,7 @@ public class WaveformView extends View {
         if (p.getShader() == null) p.setShader(new LinearGradient(0, 0, w, 0, c1, c2, Shader.TileMode.CLAMP));
         for (int i = 0; i < bars; i++) {
             float bh = h * hs[i];
+            if (bh < 3f) bh = 3f;
             float left = startX + i * (barW + gap);
             r.set(left, cy - bh / 2f, left + barW, cy + bh / 2f);
             cv.drawRoundRect(r, barW / 2f, barW / 2f, p);

@@ -1,6 +1,9 @@
 package com.xuanyin.app.widget;
 import android.content.Context;
-import android.graphics.*;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RadialGradient;
+import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.view.View;
 public class GlowRingView extends View {
@@ -11,8 +14,8 @@ public class GlowRingView extends View {
     public GlowRingView(Context c, AttributeSet a) { super(c, a); init(); }
     public GlowRingView(Context c, AttributeSet a, int d) { super(c, a, d); init(); }
     private void init() {
-        setClickable(false); setFocusable(false);
-        setLayerType(LAYER_TYPE_SOFTWARE, null);
+        setClickable(false);
+        setFocusable(false);
     }
     public void setColor(int c) { color = c; invalidate(); }
     @Override protected void onDraw(Canvas cv) {
