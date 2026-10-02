@@ -20,14 +20,8 @@ public class SplashActivity extends AppCompatActivity {
         set.setDuration(720);
         set.setInterpolator(new DecelerateInterpolator(1.6f));
         logo.startAnimation(set);
-        if (sub != null) {
-            sub.setAlpha(0f);
-            sub.animate().alpha(1f).setStartDelay(320).setDuration(500).start();
-        }
-        if (glow != null) {
-            glow.setAlpha(0f);
-            glow.animate().alpha(1f).setDuration(900).start();
-        }
+        if (sub != null) { sub.setAlpha(0f); sub.animate().alpha(1f).setStartDelay(320).setDuration(500).start(); }
+        if (glow != null) { glow.setAlpha(0f); glow.animate().alpha(1f).setDuration(900).start(); }
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             startActivity(new Intent(this, MainActivity.class));
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);

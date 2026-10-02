@@ -39,7 +39,8 @@ public class IslandProgressGlowView extends View {
             int alpha = (int)(90 * Math.sin(Math.PI * phase));
             if (alpha > 0) {
                 glow.setAlpha(alpha);
-                glow.setShader(new LinearGradient(gx - gw/2f, 0, gx + gw/2f, 0, 0x00FFFFFF, 0xFFFFFFFF, Shader.TileMode.CLAMP));
+                glow.setShader(new LinearGradient(gx - gw/2f, 0, gx + gw/2f, 0,
+                    0x00FFFFFF, 0xFFFFFFFF, Shader.TileMode.CLAMP));
                 RectF gr = new RectF(Math.max(0, gx - gw/2f), 0, Math.min(pw, gx + gw/2f), h);
                 canvas.drawRoundRect(gr, r, r, glow);
             }

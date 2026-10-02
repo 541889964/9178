@@ -13,7 +13,8 @@ public class AlarmHelper {
         if (c.getTimeInMillis() < System.currentTimeMillis()) c.add(Calendar.DAY_OF_MONTH, 1);
         Intent i = new Intent(ctx, AlarmReceiver.class);
         PendingIntent pi = PendingIntent.getBroadcast(ctx, 0, i,
-            Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
+            Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                : PendingIntent.FLAG_UPDATE_CURRENT);
         if (Build.VERSION.SDK_INT >= 23) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pi);
         else am.setExact(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pi);
         Prefs.put("alarm_hour", hour); Prefs.put("alarm_min", min);

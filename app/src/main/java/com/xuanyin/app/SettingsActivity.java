@@ -26,7 +26,8 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.btn_notify_access).setOnClickListener(v ->
             startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")));
         findViewById(R.id.btn_battery).setOnClickListener(v ->
-            startActivity(new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:" + getPackageName()))));
+            startActivity(new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                Uri.parse("package:" + getPackageName()))));
         findViewById(R.id.btn_test_notify).setOnClickListener(v ->
             startService(new Intent(this, com.xuanyin.app.service.IslandService.class).setAction("TEST_NOTIFY")));
         findViewById(R.id.btn_announcement).setOnClickListener(v ->

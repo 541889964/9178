@@ -10,20 +10,16 @@
                 android:text="玄音公告" android:textColor="@color/white"
                 android:textSize="26sp" android:textStyle="bold" />
             <View android:layout_width="60dp" android:layout_height="3dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_gradient_button" />
+                android:layout_marginTop="8dp" android:background="@drawable/bg_gradient_button" />
             <TextView android:id="@+id/tv_announcement"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:textColor="@color/sub_text" android:textSize="14sp"
-                android:lineSpacingMultiplier="1.6" />
+                android:layout_marginTop="20dp" android:textColor="@color/sub_text"
+                android:textSize="14sp" android:lineSpacingMultiplier="1.6" />
             <View android:layout_height="80dp" android:layout_width="match_parent" />
         </LinearLayout>
     </ScrollView>
-    <TextView android:id="@+id/btn_agree"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_margin="24dp" android:paddingHorizontal="48dp"
-        android:paddingVertical="14dp"
+    <TextView android:id="@+id/btn_agree" android:layout_gravity="bottom|center_horizontal"
+        android:layout_margin="24dp" android:paddingHorizontal="48dp" android:paddingVertical="14dp"
         android:background="@drawable/bg_gradient_button"
         android:text="我已阅读并同意" android:textColor="@color/white"
         android:textSize="15sp" android:textStyle="bold" />
