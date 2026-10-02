@@ -29,12 +29,12 @@ public class IslandService extends Service {
     private ProgressBar dlBar;
     private ImageView ivCoverMini;
     private IslandPulseView pulseMini;
-    private View expanded, lifeGroup, musicGroup;
+    private View expandedView, lifeGroup, musicGroup;
     private TextView tvTimeBig, tvDate, tvAlarm, tvBatteryBig, tvSongTitle, tvSongArtist, tvLyric;
     private ImageView ivCoverBig;
     private ProgressBar progress;
     private WindowManager.LayoutParams params;
-    private boolean expanded = false, musicMode = false, downloadMode = false;
+    private boolean expandedState = false, musicMode = false, downloadMode = false;
     private Song currentSong;
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final BroadcastReceiver rx = new BroadcastReceiver() {
@@ -118,7 +118,7 @@ public class IslandService extends Service {
         dlBar = root.findViewById(R.id.dl_bar_mini);
         ivCoverMini = root.findViewById(R.id.iv_cover_mini);
         pulseMini = root.findViewById(R.id.pulse_mini);
-        expanded = root.findViewById(R.id.island_expanded);
+        expandedView = root.findViewById(R.id.island_expanded);
         lifeGroup = root.findViewById(R.id.group_life);
         musicGroup = root.findViewById(R.id.group_music);
         tvTimeBig = root.findViewById(R.id.tv_time_big);
@@ -162,13 +162,13 @@ public class IslandService extends Service {
         if (musicGroup != null) musicGroup.setVisibility(mu ? View.VISIBLE : View.GONE);
     }
     private void toggle() {
-        expanded = !expanded;
-        if (expanded) {
+        expandedState = !expandedState;
+        if (expandedState) {
             Haptic.expand(this);
-            expanded.setVisibility(View.VISIBLE);
-            expanded.setAlpha(0f); expanded.setScaleX(0.88f); expanded.setScaleY(0.88f);
+            expandedView.setVisibility(View.VISIBLE);
+            expandedView.setAlpha(0f); expandedView.setScaleX(0.88f); expandedView.setScaleY(0.88f);
             applySize(true);
-            expanded.animate().alpha(1f).scaleX(1f).scaleY(1f)
+            expandedView.animate().alpha(1f).scaleX(1f).scaleY(1f)
                 .setDuration(320).setInterpolator(new OvershootInterpolator(1.15f)).start();
             collapsed.animate().alpha(0f).setDuration(110).withEndAction(() -> {
                 collapsed.setVisibility(View.GONE); collapsed.setAlpha(1f);
@@ -181,15 +181,15 @@ public class IslandService extends Service {
             collapsed.setAlpha(0f);
             applySize(false);
             collapsed.animate().alpha(1f).setDuration(210).start();
-            expanded.animate().alpha(0f).scaleX(0.88f).scaleY(0.88f)
+            expandedView.animate().alpha(0f).scaleX(0.88f).scaleY(0.88f)
                 .setDuration(180).withEndAction(() -> {
-                    expanded.setVisibility(View.GONE);
-                    expanded.setAlpha(1f); expanded.setScaleX(1f); expanded.setScaleY(1f);
+                    expandedView.setVisibility(View.GONE);
+                    expandedView.setAlpha(1f); expandedView.setScaleX(1f); expandedView.setScaleY(1f);
                 }).start();
             ui.removeCallbacks(autoCol);
         }
     }
-    private final Runnable autoCol = () -> { if (expanded) toggle(); };
+    private final Runnable autoCol = () -> { if (expandedState) toggle(); };
     private void applySize(boolean exp) {
         if (root == null || params == null) return;
         int w, h;
@@ -285,7 +285,7 @@ public class IslandService extends Service {
         });
     }
     @Override public void onConfigurationChanged(Configuration c) {
-        super.onConfigurationChanged(c); applySize(expanded);
+        super.onConfigurationChanged(c); applySize(expandedState);
     }
     @Override public int onStartCommand(Intent i, int f, int s) {
         if (i != null && "TEST_NOTIFY".equals(i.getAction())) showNotify("测试通知");
