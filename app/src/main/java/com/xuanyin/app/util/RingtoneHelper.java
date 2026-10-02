@@ -9,10 +9,6 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.util.Log;
 
-/**
- * 铃声 + 震动工具
- * 兼容 setAlarm(Context, Object) / setAlarm(Context, Object, long)
- */
 public class RingtoneHelper {
     private static final String TAG = "RingtoneHelper";
     private static Ringtone currentRingtone = null;
@@ -25,29 +21,22 @@ public class RingtoneHelper {
         if (context == null) return false;
         try {
             stopAlarm(context);
-
             Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
             if (uri == null) uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
             if (uri == null) uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-
             if (uri != null) {
                 currentRingtone = RingtoneManager.getRingtone(context.getApplicationContext(), uri);
                 if (currentRingtone != null) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        currentRingtone.setLooping(true);
-                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) currentRingtone.setLooping(true);
                     currentRingtone.play();
                 }
             }
-
             Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
             if (v != null && v.hasVibrator()) {
                 long[] pattern = new long[]{0, 500, 500, 500};
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                     v.vibrate(VibrationEffect.createWaveform(pattern, 0));
-                } else {
-                    v.vibrate(pattern, 0);
-                }
+                else v.vibrate(pattern, 0);
             }
             return true;
         } catch (Exception e) {
@@ -58,9 +47,7 @@ public class RingtoneHelper {
 
     public static void stopAlarm() {
         try {
-            if (currentRingtone != null && currentRingtone.isPlaying()) {
-                currentRingtone.stop();
-            }
+            if (currentRingtone != null && currentRingtone.isPlaying()) currentRingtone.stop();
             currentRingtone = null;
         } catch (Exception ignored) {}
     }
@@ -75,10 +62,7 @@ public class RingtoneHelper {
     }
 
     public static boolean isPlaying() {
-        try {
-            return currentRingtone != null && currentRingtone.isPlaying();
-        } catch (Exception ignored) {
-            return false;
-        }
+        try { return currentRingtone != null && currentRingtone.isPlaying(); }
+        catch (Exception ignored) { return false; }
     }
 }
