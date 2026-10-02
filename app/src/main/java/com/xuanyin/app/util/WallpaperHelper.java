@@ -2,6 +2,8 @@ package com.xuanyin.app.util;
 import android.content.Context;
 import android.widget.ImageView;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 import com.bumptech.glide.request.RequestOptions;
 import com.xuanyin.app.R;
 public class WallpaperHelper {
@@ -13,11 +15,15 @@ public class WallpaperHelper {
     };
     public static int coverFor(long id) { return RES[(int)(Math.abs(id) % RES.length)]; }
     public static void loadCover(Context c, ImageView iv, long id) {
-        Glide.with(c).load(coverFor(id)).apply(new RequestOptions().circleCrop()).into(iv);
+        Glide.with(c).load(coverFor(id))
+            .apply(new RequestOptions().transform(new CircleCrop()).diskCacheStrategy(DiskCacheStrategy.ALL))
+            .into(iv);
     }
     public static void loadBackground(Context c, ImageView iv) {
         int idx = Prefs.getInt("bg_index", 0) % RES.length;
-        Glide.with(c).load(RES[idx]).apply(new RequestOptions().centerCrop()).into(iv);
+        Glide.with(c).load(RES[idx])
+            .apply(new RequestOptions().centerCrop().diskCacheStrategy(DiskCacheStrategy.ALL))
+            .into(iv);
     }
     public static int[] all() { return RES; }
 }

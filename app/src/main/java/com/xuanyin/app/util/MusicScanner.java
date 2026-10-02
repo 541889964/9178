@@ -10,18 +10,13 @@ import java.util.*;
 public class MusicScanner {
     private static final Set<String> EXT = new HashSet<>(Arrays.asList(
         "mp3","flac","wav","m4a","aac","ogg","ape","wma","opus","mp4","3gp"));
-    private static final Set<String> SKIP_DIR = new HashSet<>(Arrays.asList(
+    private static final Set<String> SKIP = new HashSet<>(Arrays.asList(
         "Android","data","obb",".thumbnails","cache","temp"));
-
     public static List<Song> scan(Context ctx) {
         List<Song> list = new ArrayList<>();
         Set<String> seen = new HashSet<>();
-        // 通道 1：MediaStore（快）
-        try { queryMediaStore(ctx, list, seen); } catch (Throwable ignored) {}
-        // 通道 2：递归文件系统
-        for (File root : getRoots()) {
-            try { recursive(root, list, seen, 0); } catch (Throwable ignored) {}
-        }
+        try { query(ctx, list, seen); } catch (Throwable ignored) {}
+        for (File r : roots()) try { walk(r, list, seen, 0); } catch (Throwable ignored) {}
         Collections.sort(list, (a,b) -> {
             String x = a.title == null ? "" : a.title;
             String y = b.title == null ? "" : b.title;
@@ -29,62 +24,55 @@ public class MusicScanner {
         });
         return list;
     }
-
-    private static File[] getRoots() {
-        List<File> roots = new ArrayList<>();
-        roots.add(new File("/storage/emulated/0"));
-        File sd = new File("/storage");
-        File[] subs = sd.listFiles();
-        if (subs != null) for (File f : subs) {
+    private static File[] roots() {
+        List<File> r = new ArrayList<>();
+        r.add(new File("/storage/emulated/0"));
+        File[] s = new File("/storage").listFiles();
+        if (s != null) for (File f : s) {
             String n = f.getName();
-            if (f.isDirectory() && !n.equals("emulated") && !n.equals("self")) roots.add(f);
+            if (f.isDirectory() && !n.equals("emulated") && !n.equals("self")) r.add(f);
         }
-        return roots.toArray(new File[0]);
+        return r.toArray(new File[0]);
     }
-
-    private static void recursive(File dir, List<Song> out, Set<String> seen, int depth) {
-        if (dir == null || depth > 12) return;
-        if (!dir.exists() || !dir.isDirectory() || !dir.canRead()) return;
-        String name = dir.getName();
-        if (SKIP_DIR.contains(name) || name.startsWith(".")) return;
-        File[] files = dir.listFiles();
-        if (files == null) return;
-        for (File f : files) {
-            if (f.isDirectory()) {
-                recursive(f, out, seen, depth + 1);
-            } else {
+    private static void walk(File d, List<Song> out, Set<String> seen, int depth) {
+        if (d == null || depth > 12 || !d.exists() || !d.isDirectory() || !d.canRead()) return;
+        String n = d.getName();
+        if (SKIP.contains(n) || n.startsWith(".")) return;
+        File[] fs = d.listFiles();
+        if (fs == null) return;
+        for (File f : fs) {
+            if (f.isDirectory()) walk(f, out, seen, depth + 1);
+            else {
                 String fn = f.getName();
                 int dot = fn.lastIndexOf('.');
                 if (dot < 0) continue;
                 String ext = fn.substring(dot+1).toLowerCase(Locale.ROOT);
                 if (!EXT.contains(ext)) continue;
-                String path = f.getAbsolutePath();
-                if (seen.contains(path)) continue;
-                seen.add(path);
+                String p = f.getAbsolutePath();
+                if (seen.contains(p)) continue;
+                seen.add(p);
                 Song s = new Song();
-                s.path = path;
+                s.path = p;
                 s.title = fn.substring(0, dot);
-                s.duration = 0;
                 try {
-                    MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-                    mmr.setDataSource(path);
-                    String t = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                    String a = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-                    String al = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
-                    String d = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                    MediaMetadataRetriever m = new MediaMetadataRetriever();
+                    m.setDataSource(p);
+                    String t = m.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                    String a = m.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                    String al = m.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+                    String du = m.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
                     if (t != null && !t.isEmpty()) s.title = t;
                     if (a != null) s.artist = a;
                     if (al != null) s.album = al;
-                    if (d != null) try { s.duration = Long.parseLong(d); } catch (Throwable ignored) {}
-                    mmr.release();
+                    if (du != null) try { s.duration = Long.parseLong(du); } catch (Throwable ignored) {}
+                    m.release();
                 } catch (Throwable ignored) {}
-                s.id = path.hashCode() & 0x7FFFFFFF;
+                s.id = p.hashCode() & 0x7FFFFFFF;
                 out.add(s);
             }
         }
     }
-
-    private static void queryMediaStore(Context ctx, List<Song> out, Set<String> seen) {
+    private static void query(Context ctx, List<Song> out, Set<String> seen) {
         ContentResolver cr = ctx.getContentResolver();
         Cursor c = cr.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, null,
                 MediaStore.Audio.Media.IS_MUSIC + " != 0", null,
@@ -98,20 +86,17 @@ public class MusicScanner {
         int iP = c.getColumnIndex(MediaStore.Audio.Media.DATA);
         int iAB = c.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID);
         while (c.moveToNext()) {
-            String path = iP >= 0 ? c.getString(iP) : null;
-            if (path != null && seen.contains(path)) continue;
+            String p = iP >= 0 ? c.getString(iP) : null;
+            if (p != null && seen.contains(p)) continue;
             Song s = new Song();
             s.id = c.getLong(iId);
             s.title = c.getString(iT);
             s.artist = c.getString(iA);
             s.album = c.getString(iAl);
             s.duration = c.getLong(iD);
-            s.path = path;
+            s.path = p;
             s.albumId = c.getLong(iAB);
-            if (s.title != null) {
-                out.add(s);
-                if (path != null) seen.add(path);
-            }
+            if (s.title != null) { out.add(s); if (p != null) seen.add(p); }
         }
         c.close();
     }
