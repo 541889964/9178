@@ -1,45 +1,200 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/island_root"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:clipChildren="false">
-    <FrameLayout android:id="@+id/island_main"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="start|top">
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:clipChildren="false" android:clipToPadding="false">
+
+    <FrameLayout android:id="@+id/main_island"
+        android:layout_width="230dp" android:layout_height="44dp"
+        android:layout_gravity="center_horizontal|top" android:clipChildren="false">
+
         <com.xuanyin.app.widget.IslandBackdropView
-            android:id="@+id/island_backdrop"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:id="@+id/main_backdrop"
+            android:layout_width="match_parent" android:layout_height="match_parent" />
+
         <com.xuanyin.app.widget.ChargingEffectView
-            android:id="@+id/charging_effect"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-        <FrameLayout android:id="@+id/island_content"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipChildren="false">
-            <include layout="@layout/island_collapsed" />
-            <include layout="@layout/island_expanded" />
-        </FrameLayout>
-    </FrameLayout>
-    <FrameLayout android:id="@+id/island_notif_card"
-        android:layout_width="180dp" android:layout_height="40dp"
-        android:layout_gravity="start|top" android:visibility="gone"
-        android:background="@drawable/bg_notif_card"
-        android:paddingHorizontal="12dp" android:paddingVertical="8dp">
-        <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
+            android:id="@+id/main_charging"
+            android:layout_width="match_parent" android:layout_height="match_parent" />
+
+        <LinearLayout android:id="@+id/main_collapsed_life"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:paddingHorizontal="16dp"
+            android:layout_width="match_parent" android:layout_height="match_parent">
+            <TextView android:id="@+id/tv_time_mini"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="14:30" android:textColor="#FFFFFF"
+                android:textSize="15sp" android:textStyle="bold" android:maxLines="1" />
+            <View android:layout_width="3dp" android:layout_height="3dp"
+                android:layout_marginHorizontal="10dp" android:background="#55FFFFFF" />
+            <TextView android:id="@+id/tv_date_mini"
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:text="10月2日"
+                android:textColor="#C9BFF5" android:textSize="12sp"
+                android:maxLines="1" android:ellipsize="end" />
+            <TextView android:id="@+id/tv_battery_mini"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="100%" android:textColor="#FFFFFF" android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/main_collapsed_music"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:paddingHorizontal="10dp" android:visibility="gone"
+            android:layout_width="match_parent" android:layout_height="match_parent">
+            <ImageView android:id="@+id/iv_cover_mini"
+                android:layout_width="28dp" android:layout_height="28dp" android:scaleType="centerCrop" />
+            <LinearLayout android:orientation="vertical" android:layout_marginStart="8dp"
+                android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content">
+                <TextView android:id="@+id/tv_title_mini"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="未播放" android:textColor="#FFFFFF"
+                    android:textSize="12sp" android:textStyle="bold"
+                    android:maxLines="1" android:ellipsize="end" />
+                <LinearLayout android:orientation="horizontal" android:layout_marginTop="2dp"
+                    android:layout_width="match_parent" android:layout_height="wrap_content">
+                    <TextView android:id="@+id/tv_lyric_mini"
+                        android:layout_width="0dp" android:layout_weight="1"
+                        android:layout_height="wrap_content" android:text=""
+                        android:textColor="#C9BFF5" android:textSize="11sp"
+                        android:maxLines="1" android:ellipsize="end" />
+                    <TextView android:id="@+id/tv_lyric2_mini"
+                        android:layout_width="0dp" android:layout_weight="1"
+                        android:layout_marginStart="8dp" android:layout_height="wrap_content"
+                        android:text="" android:textColor="#66FFFFFF" android:textSize="11sp"
+                        android:maxLines="1" android:ellipsize="end" />
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
+                android:layout_width="24dp" android:layout_height="18dp" android:layout_marginStart="6dp">
+                <View android:layout_width="3dp" android:layout_height="8dp"
+                    android:layout_marginEnd="2dp" android:background="#FF6B9D" />
+                <View android:layout_width="3dp" android:layout_height="14dp"
+                    android:layout_marginEnd="2dp" android:background="#9B6BFF" />
+                <View android:layout_width="3dp" android:layout_height="10dp"
+                    android:layout_marginEnd="2dp" android:background="#FF6B9D" />
+                <View android:layout_width="3dp" android:layout_height="16dp"
+                    android:layout_marginEnd="2dp" android:background="#9B6BFF" />
+                <View android:layout_width="3dp" android:layout_height="6dp" android:background="#FF6B9D" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/main_collapsed_dl"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:paddingHorizontal="14dp" android:visibility="gone"
             android:layout_width="match_parent" android:layout_height="match_parent">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="🔔" android:textSize="15sp" />
+                android:text="⬇" android:textSize="16sp" android:textColor="#5AC8FA" />
+            <LinearLayout android:orientation="vertical" android:layout_weight="1"
+                android:layout_marginStart="10dp" android:layout_width="0dp" android:layout_height="wrap_content">
+                <TextView android:id="@+id/tv_dl_title"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="下载中" android:textColor="#FFFFFF"
+                    android:textSize="12sp" android:maxLines="1" android:ellipsize="end" />
+                <ProgressBar android:id="@+id/dl_bar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent" android:layout_height="2dp"
+                    android:layout_marginTop="3dp" android:max="100" android:progressTint="#5AC8FA" />
+            </LinearLayout>
+            <TextView android:id="@+id/tv_dl_pct"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginStart="10dp" android:text="0%"
+                android:textColor="#5AC8FA" android:textSize="12sp" android:textStyle="bold" />
+        </LinearLayout>
+
+        <ScrollView android:id="@+id/main_expanded"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:visibility="gone" android:scrollbars="none" android:fillViewport="true">
+            <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                <LinearLayout android:id="@+id/exp_life"
+                    android:orientation="vertical" android:padding="20dp"
+                    android:layout_width="match_parent" android:layout_height="wrap_content">
+                    <TextView android:id="@+id/tv_time_big"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="14:30" android:textColor="#FFFFFF"
+                        android:textSize="46sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/tv_date_big"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp" android:text="2026年10月2日 星期四"
+                        android:textColor="#C9BFF5" android:textSize="13sp" />
+                    <View android:layout_width="match_parent" android:layout_height="1dp"
+                        android:layout_marginVertical="14dp" android:background="#22FFFFFF" />
+                    <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
+                        android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="⏰" android:textSize="18sp" />
+                        <TextView android:id="@+id/tv_alarm_big"
+                            android:layout_width="0dp" android:layout_weight="1"
+                            android:layout_marginStart="10dp" android:layout_height="wrap_content"
+                            android:text="未设置闹钟" android:textColor="#FFFFFF" android:textSize="14sp" />
+                        <TextView android:id="@+id/tv_battery_big"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="100%" android:textColor="#4CD964"
+                            android:textSize="14sp" android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/exp_music"
+                    android:orientation="vertical" android:padding="16dp" android:visibility="gone"
+                    android:layout_width="match_parent" android:layout_height="wrap_content">
+                    <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
+                        android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <ImageView android:id="@+id/iv_cover_big"
+                            android:layout_width="46dp" android:layout_height="46dp" android:scaleType="centerCrop" />
+                        <LinearLayout android:orientation="vertical"
+                            android:layout_marginStart="12dp" android:layout_width="0dp"
+                            android:layout_weight="1" android:layout_height="wrap_content">
+                            <TextView android:id="@+id/tv_title_big"
+                                android:layout_width="match_parent" android:layout_height="wrap_content"
+                                android:text="未播放" android:textColor="#FFFFFF"
+                                android:textSize="15sp" android:textStyle="bold"
+                                android:maxLines="1" android:ellipsize="end" />
+                            <TextView android:id="@+id/tv_artist_big"
+                                android:layout_width="match_parent" android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp" android:text="未知歌手"
+                                android:textColor="#C9BFF5" android:textSize="12sp"
+                                android:maxLines="1" android:ellipsize="end" />
+                        </LinearLayout>
+                    </LinearLayout>
+                    <LinearLayout android:orientation="vertical" android:layout_marginTop="12dp"
+                        android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:id="@+id/ly1" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#66FFFFFF" android:textSize="13sp" android:maxLines="1" android:ellipsize="end" />
+                        <TextView android:id="@+id/ly2" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#B8FFFFFF" android:textSize="13sp" android:maxLines="1" android:ellipsize="end" />
+                        <TextView android:id="@+id/ly3" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+                        <TextView android:id="@+id/ly4" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#B8FFFFFF" android:textSize="13sp" android:maxLines="1" android:ellipsize="end" />
+                        <TextView android:id="@+id/ly5" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingVertical="2dp" android:text="" android:textColor="#66FFFFFF" android:textSize="13sp" android:maxLines="1" android:ellipsize="end" />
+                    </LinearLayout>
+                    <ProgressBar android:id="@+id/progress"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent" android:layout_height="3dp"
+                        android:layout_marginTop="10dp" android:max="100" android:progress="30"
+                        android:progressTint="#FF6B9D" />
+                    <LinearLayout android:orientation="horizontal" android:gravity="center"
+                        android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:id="@+id/btn_prev" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="20dp" android:paddingVertical="4dp" android:text="⏮" android:textColor="#FFFFFF" android:textSize="24sp" />
+                        <TextView android:id="@+id/btn_play" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="20dp" android:paddingVertical="4dp" android:text="⏸" android:textColor="#FFFFFF" android:textSize="28sp" />
+                        <TextView android:id="@+id/btn_next" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="20dp" android:paddingVertical="4dp" android:text="⏭" android:textColor="#FFFFFF" android:textSize="24sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
+        </ScrollView>
+    </FrameLayout>
+
+    <FrameLayout android:id="@+id/notif_island"
+        android:layout_width="230dp" android:layout_height="44dp"
+        android:layout_gravity="center_horizontal|top" android:visibility="gone" android:clipChildren="false">
+        <com.xuanyin.app.widget.IslandBackdropView
+            android:id="@+id/notif_backdrop"
+            android:layout_width="match_parent" android:layout_height="match_parent" />
+        <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
+            android:paddingHorizontal="16dp" android:layout_width="match_parent" android:layout_height="match_parent">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="🔔" android:textSize="16sp" />
             <LinearLayout android:orientation="vertical"
-                android:layout_marginStart="8dp" android:layout_width="0dp"
+                android:layout_marginStart="10dp" android:layout_width="0dp"
                 android:layout_weight="1" android:layout_height="wrap_content">
                 <TextView android:id="@+id/notif_title"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:text="通知" android:textColor="#FFFFFF"
-                    android:textSize="12sp" android:textStyle="bold"
+                    android:textSize="13sp" android:textStyle="bold"
                     android:maxLines="1" android:ellipsize="end" />
                 <TextView android:id="@+id/notif_text"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
