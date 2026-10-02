@@ -1,4 +1,6 @@
 package com.xuanyin.app.service;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.app.*;
 import android.content.*;
@@ -7,7 +9,8 @@ import android.graphics.Outline;
 import android.graphics.PixelFormat;
 import android.os.*;
 import android.view.*;
-import android.view.animation.*;
+import android.view.animation.Interpolator;
+import android.view.animation.PathInterpolator;
 import android.widget.*;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -22,12 +25,14 @@ import java.util.Locale;
 public class IslandService extends Service {
     private static final String CH = "island_ch";
     private static final int NID = 1001;
-    private static final long OPEN_DURATION = 1000L;
-    private static final long CLOSE_DURATION = 900L;
+    private static final long OPEN_DURATION = 1100L;
+    private static final long CLOSE_DURATION = 950L;
     private static final Interpolator EASE_OPEN = new PathInterpolator(0.16f, 1f, 0.3f, 1f);
     private static final Interpolator EASE_CLOSE = new PathInterpolator(0.4f, 0f, 0.6f, 1f);
     private WindowManager wm;
     private FrameLayout root;
+    private View islandMain;
+    private FrameLayout notifCard;
     private IslandBackdropView backdrop;
     private View collapsedView, collapsedLife, collapsedMusic, collapsedDl;
     private TextView tvTimeMini, tvBatteryMini, tvCollapsedTitle, tvDlTitle, tvDlPct;
@@ -38,11 +43,13 @@ public class IslandService extends Service {
     private TextView tvTimeBig, tvDate, tvAlarm, tvBatteryBig, tvSongTitle, tvSongArtist, tvLyric;
     private ImageView ivCoverBig;
     private ProgressBar progress;
+    private TextView notifTitle, notifText;
     private WindowManager.LayoutParams params;
     private boolean expandedState = false, musicMode = false, downloadMode = false;
-    private boolean charging = false;
+    private boolean charging = false, notifVisible = false;
     private Song currentSong;
     private ValueAnimator sizeAnim;
+    private int screenWidth;
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final BroadcastReceiver rx = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
@@ -60,7 +67,9 @@ public class IslandService extends Service {
                         View bp = root == null ? null : root.findViewById(R.id.btn_play);
                         if (bp instanceof TextView) ((TextView) bp).setText(p ? "⏸" : "▶");
                         break;
-                    case "com.xuanyin.app.NOTIFY": showNotify(i.getStringExtra("title")); break;
+                    case "com.xuanyin.app.NOTIFY":
+                        showNotify(i.getStringExtra("title"), i.getStringExtra("text"));
+                        break;
                     case "com.xuanyin.app.ALARM": showAlarm(); break;
                     case "com.xuanyin.app.DL_START": onDlStart(i.getStringExtra("title")); break;
                     case "com.xuanyin.app.DL_PROGRESS": onDlProg(i.getStringExtra("title"), i.getIntExtra("percent", 0)); break;
@@ -99,14 +108,15 @@ public class IslandService extends Service {
         }
     }
     private void flashGreen() {
-        if (backdrop == null) return;
-        backdrop.animate().cancel();
-        backdrop.animate().scaleX(1.05f).scaleY(1.05f).setDuration(180)
-            .withEndAction(() -> backdrop.animate().scaleX(1f).scaleY(1f)
+        if (islandMain == null) return;
+        islandMain.animate().cancel();
+        islandMain.animate().scaleX(1.06f).scaleY(1.06f).setDuration(180)
+            .withEndAction(() -> islandMain.animate().scaleX(1f).scaleY(1f)
                 .setDuration(380).setInterpolator(EASE_CLOSE).start()).start();
     }
     @Override public void onCreate() {
         super.onCreate();
+        screenWidth = getResources().getDisplayMetrics().widthPixels;
         startFg(); initWin(); startClock();
         IntentFilter f = new IntentFilter();
         f.addAction("com.xuanyin.app.SONG_CHANGED");
@@ -140,9 +150,10 @@ public class IslandService extends Service {
     }
     private void initWin() {
         wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-        try {
-            root = (FrameLayout) LayoutInflater.from(this).inflate(R.layout.island_root, null);
-        } catch (Throwable t) { stopSelf(); return; }
+        try { root = (FrameLayout) LayoutInflater.from(this).inflate(R.layout.island_root, null); }
+        catch (Throwable t) { stopSelf(); return; }
+        islandMain = root.findViewById(R.id.island_main);
+        notifCard = root.findViewById(R.id.island_notif_card);
         backdrop = root.findViewById(R.id.island_backdrop);
         collapsedView = root.findViewById(R.id.island_collapsed);
         collapsedLife = root.findViewById(R.id.group_life_mini);
@@ -168,6 +179,8 @@ public class IslandService extends Service {
         tvLyric = root.findViewById(R.id.tv_lyric);
         ivCoverBig = root.findViewById(R.id.iv_cover_big);
         progress = root.findViewById(R.id.progress);
+        notifTitle = root.findViewById(R.id.notif_title);
+        notifText = root.findViewById(R.id.notif_text);
         View bp = root.findViewById(R.id.btn_prev);
         View bpl = root.findViewById(R.id.btn_play);
         View bn = root.findViewById(R.id.btn_next);
@@ -177,16 +190,18 @@ public class IslandService extends Service {
         int type = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
             ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             : WindowManager.LayoutParams.TYPE_PHONE;
-        params = new WindowManager.LayoutParams(0, 0, type,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+        params = new WindowManager.LayoutParams(screenWidth, WindowManager.LayoutParams.WRAP_CONTENT, type,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT);
         params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
         params.y = IslandAdaptiveHelper.getSafeTop(this) + IslandAdaptiveHelper.dpToPx(this, 8);
         try { wm.addView(root, params); } catch (Throwable t) { stopSelf(); return; }
         root.setOnClickListener(v -> toggle());
         setModeView();
-        applySize(false, false);
+        applyMainSize(false, false);
         if (backdrop != null) backdrop.setMode(0);
     }
     private void setModeView() {
@@ -201,6 +216,7 @@ public class IslandService extends Service {
         if (musicGroup != null) musicGroup.setVisibility(mu ? View.VISIBLE : View.GONE);
     }
     private void toggle() {
+        if (notifVisible) { hideNotifyCard(); return; }
         expandedState = !expandedState;
         if (expandedState) {
             Haptic.expand(this);
@@ -211,7 +227,7 @@ public class IslandService extends Service {
                 expandedView.animate().alpha(1f).scaleX(1f).scaleY(1f)
                     .setDuration(OPEN_DURATION).setInterpolator(EASE_OPEN).start();
             }
-            applySize(true, true, OPEN_DURATION, EASE_OPEN);
+            applyMainSize(true, true, OPEN_DURATION, EASE_OPEN);
             if (collapsedView != null) {
                 collapsedView.animate().alpha(0f).setDuration(OPEN_DURATION / 3)
                     .setInterpolator(EASE_OPEN).withEndAction(() -> {
@@ -229,7 +245,7 @@ public class IslandService extends Service {
                 collapsedView.animate().alpha(1f).setDuration(CLOSE_DURATION)
                     .setInterpolator(EASE_CLOSE).start();
             }
-            applySize(false, true, CLOSE_DURATION, EASE_CLOSE);
+            applyMainSize(false, true, CLOSE_DURATION, EASE_CLOSE);
             if (expandedView != null) {
                 expandedView.animate().alpha(0f).scaleX(0.86f).scaleY(0.86f)
                     .setDuration(CLOSE_DURATION / 2).setInterpolator(EASE_CLOSE).withEndAction(() -> {
@@ -242,23 +258,17 @@ public class IslandService extends Service {
         }
     }
     private final Runnable autoCol = () -> { if (expandedState) toggle(); };
-    private void applySize(final boolean exp, boolean animate) {
-        applySize(exp, animate, exp ? OPEN_DURATION : CLOSE_DURATION, exp ? EASE_OPEN : EASE_CLOSE);
+    private void applyMainSize(final boolean exp, boolean animate) {
+        applyMainSize(exp, animate, exp ? OPEN_DURATION : CLOSE_DURATION, exp ? EASE_OPEN : EASE_CLOSE);
     }
-    private void applySize(final boolean exp, boolean animate, long duration, Interpolator interp) {
-        if (root == null || params == null) return;
-        final int tw = exp ? IslandAdaptiveHelper.getExpandedWidth(this) : IslandAdaptiveHelper.getCollapsedWidth(this);
+    private void applyMainSize(final boolean exp, boolean animate, long duration, Interpolator interp) {
+        if (islandMain == null) return;
+        final int tw = exp ? (int)(screenWidth * 0.94f) : (int)(screenWidth * 0.62f);
         final int th = exp ? IslandAdaptiveHelper.getExpandedHeight(this) : IslandAdaptiveHelper.getCollapsedHeight(this);
-        final int y = IslandAdaptiveHelper.getSafeTop(this) + IslandAdaptiveHelper.dpToPx(this, 8);
         if (sizeAnim != null && sizeAnim.isRunning()) sizeAnim.cancel();
-        if (!animate) {
-            params.width = tw; params.height = th; params.y = y;
-            updateRadius(exp, tw, th);
-            try { wm.updateViewLayout(root, params); } catch (Throwable ignored) {}
-            return;
-        }
-        final int sw = params.width > 0 ? params.width : IslandAdaptiveHelper.getCollapsedWidth(this);
-        final int sh = params.height > 0 ? params.height : IslandAdaptiveHelper.getCollapsedHeight(this);
+        if (!animate) { setMainWidth(tw); setMainHeight(th); updateRadius(exp, tw, th); return; }
+        final int sw = islandMain.getWidth() > 0 ? islandMain.getWidth() : (int)(screenWidth * 0.62f);
+        final int sh = islandMain.getHeight() > 0 ? islandMain.getHeight() : IslandAdaptiveHelper.getCollapsedHeight(this);
         sizeAnim = ValueAnimator.ofFloat(0f, 1f);
         sizeAnim.setDuration(duration);
         sizeAnim.setInterpolator(interp);
@@ -266,19 +276,103 @@ public class IslandService extends Service {
             float p = (float) a.getAnimatedValue();
             int w = (int)(sw + (tw - sw) * p);
             int h = (int)(sh + (th - sh) * p);
-            params.width = w; params.height = h; params.y = y;
-            updateRadius(exp, w, h);
-            try { wm.updateViewLayout(root, params); } catch (Throwable ignored) {}
+            setMainWidth(w); setMainHeight(h); updateRadius(exp, w, h);
         });
         sizeAnim.start();
     }
+    private void setMainWidth(int w) {
+        if (islandMain == null) return;
+        ViewGroup.LayoutParams lp = islandMain.getLayoutParams();
+        if (lp.width != w) { lp.width = w; islandMain.setLayoutParams(lp); }
+    }
+    private void setMainHeight(int h) {
+        if (islandMain == null) return;
+        ViewGroup.LayoutParams lp = islandMain.getLayoutParams();
+        if (lp.height != h) { lp.height = h; islandMain.setLayoutParams(lp); }
+    }
     private void updateRadius(final boolean exp, int w, int h) {
-        final float rad = IslandAdaptiveHelper.getCornerRadius(this, exp, w, h);
-        root.setOutlineProvider(new ViewOutlineProvider() {
+        final float rad = exp ? IslandAdaptiveHelper.dpToPx(this, 44f) : h / 2f;
+        if (islandMain == null) return;
+        islandMain.setOutlineProvider(new ViewOutlineProvider() {
             @Override public void getOutline(View v, Outline o) { o.setRoundRect(0, 0, v.getWidth(), v.getHeight(), rad); }
         });
-        root.setClipToOutline(true);
+        islandMain.setClipToOutline(true);
         if (backdrop != null) backdrop.setCornerRadius(rad);
+    }
+    private void showNotify(String title, String text) {
+        if (notifCard == null || islandMain == null) return;
+        if (notifTitle != null) notifTitle.setText(title == null ? "通知" : title);
+        if (notifText != null) notifText.setText(text == null ? "" : text);
+        if (backdrop != null) backdrop.setMode(3);
+        if (notifVisible) {
+            ui.removeCallbacks(hideNotif);
+            ui.postDelayed(hideNotif, 5200);
+            return;
+        }
+        notifVisible = true;
+        int currentMainW = islandMain.getWidth() > 0 ? islandMain.getWidth() : (int)(screenWidth * 0.62f);
+        int currentMainH = islandMain.getHeight() > 0 ? islandMain.getHeight() : IslandAdaptiveHelper.getCollapsedHeight(this);
+        final int targetMainW = (int)(screenWidth * 0.60f);
+        final int targetCardW = (int)(screenWidth * 0.36f);
+        notifCard.setVisibility(View.VISIBLE);
+        notifCard.setAlpha(0f);
+        notifCard.setTranslationX(60f);
+        ViewGroup.LayoutParams clp = notifCard.getLayoutParams();
+        clp.width = 0;
+        clp.height = currentMainH;
+        notifCard.setLayoutParams(clp);
+        final int startMainW = currentMainW;
+        final int startMainH = currentMainH;
+        ValueAnimator anim = ValueAnimator.ofFloat(0f, 1f);
+        anim.setDuration(620);
+        anim.setInterpolator(EASE_OPEN);
+        anim.addUpdateListener(a -> {
+            float p = (float) a.getAnimatedValue();
+            setMainWidth((int)(startMainW + (targetMainW - startMainW) * p));
+            ViewGroup.LayoutParams lp = notifCard.getLayoutParams();
+            lp.width = (int)(targetCardW * p);
+            lp.height = startMainH;
+            notifCard.setLayoutParams(lp);
+            notifCard.setAlpha(p);
+            notifCard.setTranslationX((1f - p) * 60f);
+            final float fRad = IslandAdaptiveHelper.dpToPx(this, 22f);
+            notifCard.setOutlineProvider(new ViewOutlineProvider() {
+                @Override public void getOutline(View v, Outline o) { o.setRoundRect(0, 0, v.getWidth(), v.getHeight(), fRad); }
+            });
+            notifCard.setClipToOutline(true);
+        });
+        anim.start();
+        Haptic.mid(this);
+        ui.removeCallbacks(hideNotif);
+        ui.postDelayed(hideNotif, 5200);
+    }
+    private final Runnable hideNotif = this::hideNotifyCard;
+    private void hideNotifyCard() {
+        if (notifCard == null || !notifVisible) return;
+        int currentMainW = islandMain.getWidth();
+        int targetMainW = expandedState ? (int)(screenWidth * 0.94f) : (int)(screenWidth * 0.62f);
+        final int startMainW = currentMainW;
+        final int startCardW = notifCard.getWidth();
+        ValueAnimator anim = ValueAnimator.ofFloat(0f, 1f);
+        anim.setDuration(480);
+        anim.setInterpolator(EASE_CLOSE);
+        anim.addUpdateListener(a -> {
+            float p = (float) a.getAnimatedValue();
+            setMainWidth((int)(startMainW + (targetMainW - startMainW) * p));
+            ViewGroup.LayoutParams lp = notifCard.getLayoutParams();
+            lp.width = (int)(startCardW * (1f - p));
+            notifCard.setLayoutParams(lp);
+            notifCard.setAlpha(1f - p);
+            notifCard.setTranslationX(p * 60f);
+        });
+        anim.addListener(new AnimatorListenerAdapter() {
+            @Override public void onAnimationEnd(Animator animation) {
+                notifCard.setVisibility(View.GONE);
+                notifVisible = false;
+                if (backdrop != null) backdrop.setMode(charging ? 2 : (musicMode ? 1 : 0));
+            }
+        });
+        anim.start();
     }
     private void onSong(Song s) {
         currentSong = s; musicMode = true; downloadMode = false;
@@ -324,12 +418,6 @@ public class IslandService extends Service {
         }
         try { startService(i); } catch (Throwable ignored) {}
     }
-    private void showNotify(String t) {
-        if (tvCollapsedTitle != null && t != null) tvCollapsedTitle.setText(t);
-        if (backdrop != null) backdrop.setMode(3);
-        ui.postDelayed(() -> { if (backdrop != null)
-            backdrop.setMode(charging ? 2 : (musicMode ? 1 : 0)); }, 3500);
-    }
     private void showAlarm() {
         if (tvCollapsedTitle != null) tvCollapsedTitle.setText("⏰ 闹钟");
         if (backdrop != null) backdrop.setMode(2);
@@ -347,7 +435,7 @@ public class IslandService extends Service {
                     if (tvTimeMini != null) tvTimeMini.setText(tf.format(n));
                     if (tvTimeBig != null) tvTimeBig.setText(tf.format(n));
                     if (tvDate != null) tvDate.setText(dfL.format(n));
-                    if (tvCollapsedTitle != null && !musicMode && !downloadMode)
+                    if (tvCollapsedTitle != null && !musicMode && !downloadMode && !notifVisible)
                         tvCollapsedTitle.setText(df.format(n));
                     if (tvAlarm != null) {
                         String al = AlarmHelper.text();
@@ -360,13 +448,15 @@ public class IslandService extends Service {
     }
     @Override public void onConfigurationChanged(Configuration c) {
         super.onConfigurationChanged(c);
-        applySize(expandedState, true);
+        screenWidth = getResources().getDisplayMetrics().widthPixels;
+        if (params != null) params.width = screenWidth;
+        applyMainSize(expandedState, true);
     }
     @Override public int onStartCommand(Intent i, int f, int s) {
         if (i == null) return START_STICKY;
         String a = i.getAction();
-        if ("TEST_NOTIFY".equals(a)) showNotify("测试通知");
-        else if ("REFRESH_SIZE".equals(a)) applySize(expandedState, true);
+        if ("TEST_NOTIFY".equals(a)) showNotify("测试通知", "灵动岛右侧分裂效果演示");
+        else if ("REFRESH_SIZE".equals(a)) applyMainSize(expandedState, true);
         return START_STICKY;
     }
     @Override public void onDestroy() {
