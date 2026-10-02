@@ -9,16 +9,26 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.util.Log;
 
+/**
+ * 铃声 + 震动工具
+ * 参数用 Object 接收，避免类型不匹配
+ */
 public class RingtoneHelper {
     private static final String TAG = "RingtoneHelper";
     private static Ringtone currentRingtone = null;
 
-    public static boolean setAlarm(Context context, Object tag) {
-        return setAlarm(context, tag, 0L);
+    public static boolean setAlarm(Object contextObj, Object tag) {
+        return setAlarm(contextObj, tag, 0L);
     }
 
-    public static boolean setAlarm(Context context, Object tag, long durationMs) {
-        if (context == null) return false;
+    public static boolean setAlarm(Object contextObj, Object tag, long durationMs) {
+        if (contextObj == null) return false;
+        if (!(contextObj instanceof Context)) {
+            Log.w(TAG, "setAlarm: not a Context: " +
+                    contextObj.getClass().getName());
+            return false;
+        }
+        Context context = (Context) contextObj;
         try {
             stopAlarm(context);
             Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
@@ -52,11 +62,11 @@ public class RingtoneHelper {
         } catch (Exception ignored) {}
     }
 
-    public static void stopAlarm(Context context) {
+    public static void stopAlarm(Object contextObj) {
         stopAlarm();
-        if (context == null) return;
+        if (!(contextObj instanceof Context)) return;
         try {
-            Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+            Vibrator v = (Vibrator) ((Context) contextObj).getSystemService(Context.VIBRATOR_SERVICE);
             if (v != null) v.cancel();
         } catch (Exception ignored) {}
     }
