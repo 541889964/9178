@@ -6,9 +6,12 @@ import android.os.Vibrator;
 import android.view.HapticFeedbackConstants;
 import android.view.View;
 public class Haptic {
-    private static Vibrator vb(Context c) { return (Vibrator) c.getSystemService(Context.VIBRATOR_SERVICE); }
+    private static Vibrator vb(Context c) {
+        if (c == null) return null;
+        try { return (Vibrator) c.getSystemService(Context.VIBRATOR_SERVICE); }
+        catch (Throwable t) { return null; }
+    }
     private static void one(Context c, long ms, int amp) {
-        if (c == null) return;
         Vibrator v = vb(c);
         if (v == null || !v.hasVibrator()) return;
         try {
@@ -17,7 +20,6 @@ public class Haptic {
         } catch (Throwable ignored) {}
     }
     private static void wave(Context c, long[] pat, int[] amps) {
-        if (c == null) return;
         Vibrator v = vb(c);
         if (v == null || !v.hasVibrator()) return;
         try {
@@ -31,14 +33,17 @@ public class Haptic {
     }
     public static void tap(Context c) { one(c, 12, 60); }
     public static void light(Context c) { one(c, 8, 40); }
+    public static void mid(Context c) { one(c, 20, 90); }
+    public static void strong(Context c) { one(c, 30, 120); }
+    public static void charge(Context c) { wave(c, new long[]{0, 18, 22, 18, 22, 30}, new int[]{0, 60, 0, 80, 0, 100}); }
     public static void longPress(View v) {
         if (v != null) try { v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS); } catch (Throwable ignored) {}
         if (v != null) one(v.getContext(), 34, 110);
     }
+    public static void longPress(Context c) { one(c, 34, 110); }
     public static void done(Context c) { wave(c, new long[]{0, 22, 36, 45}, new int[]{0, 80, 0, 120}); }
     public static void warn(Context c) { wave(c, new long[]{0, 60, 40, 60}, new int[]{0, 150, 0, 150}); }
     public static void expand(Context c) { wave(c, new long[]{0, 16, 28, 22}, new int[]{0, 70, 0, 110}); }
     public static void collapse(Context c) { one(c, 18, 85); }
     public static void swipe(Context c) { one(c, 14, 65); }
-    public static void charge(Context c) { wave(c, new long[]{0, 18, 22, 18, 22, 30}, new int[]{0, 60, 0, 80, 0, 100}); }
 }
