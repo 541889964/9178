@@ -17,22 +17,27 @@
 
         <LinearLayout android:id="@+id/main_collapsed_life"
             android:orientation="horizontal" android:gravity="center_vertical"
-            android:paddingHorizontal="16dp"
+            android:paddingHorizontal="14dp"
             android:layout_width="match_parent" android:layout_height="match_parent">
             <TextView android:id="@+id/tv_time_mini"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="14:30" android:textColor="#FFFFFF"
-                android:textSize="15sp" android:textStyle="bold" android:maxLines="1" />
+                android:textSize="14sp" android:textStyle="bold" android:maxLines="1" />
             <View android:layout_width="3dp" android:layout_height="3dp"
-                android:layout_marginHorizontal="10dp" android:background="#55FFFFFF" />
+                android:layout_marginHorizontal="8dp" android:background="#55FFFFFF" />
             <TextView android:id="@+id/tv_date_mini"
                 android:layout_width="0dp" android:layout_weight="1"
                 android:layout_height="wrap_content" android:text="10月2日"
-                android:textColor="#C9BFF5" android:textSize="12sp"
+                android:textColor="#C9BFF5" android:textSize="11sp"
                 android:maxLines="1" android:ellipsize="end" />
+            <TextView android:id="@+id/tv_time_short"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="♪ 0min" android:textColor="#B8A8E8"
+                android:textSize="11sp" android:maxLines="1" />
             <TextView android:id="@+id/tv_battery_mini"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="100%" android:textColor="#FFFFFF" android:textSize="12sp" />
+                android:text="100%" android:textColor="#FFFFFF" android:textSize="11sp" />
         </LinearLayout>
 
         <LinearLayout android:id="@+id/main_collapsed_music"
@@ -97,40 +102,66 @@
 
         <ScrollView android:id="@+id/main_expanded"
             android:layout_width="match_parent" android:layout_height="match_parent"
-            android:visibility="gone" android:scrollbars="none" android:fillViewport="true"
-            android:clickable="true" android:focusable="true">
+            android:visibility="gone" android:scrollbars="none" android:fillViewport="true">
             <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                <!-- 生活模式 -->
                 <LinearLayout android:id="@+id/exp_life"
-                    android:orientation="vertical" android:padding="20dp"
+                    android:orientation="vertical" android:padding="18dp"
                     android:layout_width="match_parent" android:layout_height="wrap_content">
                     <TextView android:id="@+id/tv_time_big"
                         android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="14:30" android:textColor="#FFFFFF"
-                        android:textSize="46sp" android:textStyle="bold" />
+                        android:textSize="42sp" android:textStyle="bold" />
                     <TextView android:id="@+id/tv_date_big"
                         android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:layout_marginTop="4dp" android:text="2026年10月2日 星期四"
-                        android:textColor="#C9BFF5" android:textSize="13sp" />
+                        android:textColor="#C9BFF5" android:textSize="12sp" />
                     <View android:layout_width="match_parent" android:layout_height="1dp"
-                        android:layout_marginVertical="14dp" android:background="#22FFFFFF" />
+                        android:layout_marginVertical="12dp" android:background="#22FFFFFF" />
                     <LinearLayout android:orientation="horizontal" android:gravity="center_vertical"
                         android:layout_width="match_parent" android:layout_height="wrap_content">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="⏰" android:textSize="18sp" />
+                            android:text="⏰" android:textSize="16sp" />
                         <TextView android:id="@+id/tv_alarm_big"
                             android:layout_width="0dp" android:layout_weight="1"
                             android:layout_marginStart="10dp" android:layout_height="wrap_content"
-                            android:text="未设置闹钟" android:textColor="#FFFFFF" android:textSize="14sp" />
+                            android:text="未设置闹钟" android:textColor="#FFFFFF" android:textSize="13sp" />
                         <TextView android:id="@+id/tv_battery_big"
                             android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:text="100%" android:textColor="#4CD964"
-                            android:textSize="14sp" android:textStyle="bold" />
+                            android:textSize="13sp" android:textStyle="bold" />
                     </LinearLayout>
-                    <TextView android:id="@+id/tv_play_time"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp" android:text="今日听歌 0 分钟"
-                        android:textColor="#C9BFF5" android:textSize="12sp" />
+                    <View android:layout_width="match_parent" android:layout_height="1dp"
+                        android:layout_marginVertical="10dp" android:background="#18FFFFFF" />
+                    <LinearLayout android:id="@+id/row_record"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:paddingVertical="8dp"
+                        android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="🎬" android:textSize="16sp" />
+                        <TextView android:layout_width="0dp" android:layout_weight="1"
+                            android:layout_marginStart="10dp" android:layout_height="wrap_content"
+                            android:text="录屏" android:textColor="#FFFFFF" android:textSize="13sp" />
+                        <TextView android:id="@+id/tv_rec_state"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="点击开始" android:textColor="#B8A8E8" android:textSize="12sp" />
+                    </LinearLayout>
+                    <LinearLayout android:id="@+id/row_time"
+                        android:orientation="horizontal" android:gravity="center_vertical"
+                        android:paddingVertical="8dp"
+                        android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="🎧" android:textSize="16sp" />
+                        <TextView android:layout_width="0dp" android:layout_weight="1"
+                            android:layout_marginStart="10dp" android:layout_height="wrap_content"
+                            android:text="累计听歌" android:textColor="#FFFFFF" android:textSize="13sp" />
+                        <TextView android:id="@+id/tv_listen_big"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="0 分钟" android:textColor="#FF6B9D"
+                            android:textSize="13sp" android:textStyle="bold" />
+                    </LinearLayout>
                 </LinearLayout>
+                <!-- 音乐模式 -->
                 <LinearLayout android:id="@+id/exp_music"
                     android:orientation="vertical" android:padding="16dp" android:visibility="gone"
                     android:layout_width="match_parent" android:layout_height="wrap_content">
@@ -168,16 +199,15 @@
                         android:progressTint="#FF6B9D" />
                     <LinearLayout android:orientation="horizontal" android:gravity="center"
                         android:layout_marginTop="6dp" android:layout_width="match_parent" android:layout_height="wrap_content">
-                        <TextView android:id="@+id/btn_prev" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="18dp" android:paddingVertical="4dp" android:text="⏮" android:textColor="#FFFFFF" android:textSize="24sp" />
-                        <TextView android:id="@+id/btn_play" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="18dp" android:paddingVertical="4dp" android:text="⏸" android:textColor="#FFFFFF" android:textSize="28sp" />
-                        <TextView android:id="@+id/btn_next" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="18dp" android:paddingVertical="4dp" android:text="⏭" android:textColor="#FFFFFF" android:textSize="24sp" />
-                        <TextView android:id="@+id/btn_mode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="18dp" android:paddingVertical="4dp" android:text="🔁" android:textColor="#FFFFFF" android:textSize="20sp" />
+                        <TextView android:id="@+id/btn_prev" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="16dp" android:paddingVertical="4dp" android:text="⏮" android:textColor="#FFFFFF" android:textSize="22sp" />
+                        <TextView android:id="@+id/btn_play" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="16dp" android:paddingVertical="4dp" android:text="⏸" android:textColor="#FFFFFF" android:textSize="26sp" />
+                        <TextView android:id="@+id/btn_next" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="16dp" android:paddingVertical="4dp" android:text="⏭" android:textColor="#FFFFFF" android:textSize="22sp" />
+                        <TextView android:id="@+id/btn_mode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="16dp" android:paddingVertical="4dp" android:text="🔁" android:textColor="#FFFFFF" android:textSize="18sp" />
                     </LinearLayout>
                 </LinearLayout>
             </FrameLayout>
         </ScrollView>
 
-        <!-- 展开态右上角关闭按钮 -->
         <TextView android:id="@+id/btn_close_expanded"
             android:layout_width="28dp" android:layout_height="28dp"
             android:layout_gravity="top|end" android:layout_margin="6dp"
