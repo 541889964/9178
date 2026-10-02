@@ -60,7 +60,7 @@ public class IslandService extends Service {
     private WindowManager wm;
     private FrameLayout root;
     private View islandMain;
-    private View notifCard;
+    private FrameLayout notifCard;
     private IslandBackdropView backdrop;
     private ChargingEffectView chargingFx;
 
@@ -233,7 +233,7 @@ public class IslandService extends Service {
         catch (Throwable t) { stopSelf(); return; }
 
         islandMain = root.findViewById(R.id.island_main);
-        notifCard = root.findViewById(R.id.island_notif_card);
+        notifCard = (FrameLayout) root.findViewById(R.id.island_notif_card);
         backdrop = root.findViewById(R.id.island_backdrop);
         try { chargingFx = (ChargingEffectView) root.findViewById(R.id.charging_effect); }
         catch (Throwable ignored) {}
