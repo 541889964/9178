@@ -17,7 +17,7 @@ public class WallpaperHelper {
     }
     public static void loadBackground(Context c, ImageView iv) {
         int idx = Prefs.getInt("bg_index", 0) % RES.length;
-        Glide.with(c).load(RES[idx]).apply(new RequestOptions().centerCrop().blur(25)).into(iv);
+        Glide.with(c).load(RES[idx]).apply(new RequestOptions().centerCrop()).into(iv);
     }
     public static int[] all() { return RES; }
 }
