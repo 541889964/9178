@@ -1,2 +1,2 @@
 -keep class com.magnet.downloader.** { *; }
--dontwarn **
+-dontwarn okhttp3.** -dontwarn okio.**

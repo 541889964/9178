@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="bg_deep">#0A0612</color>
-    <color name="bg_purple">#1A0F2E</color>
     <color name="white">#FFFFFF</color>
     <color name="sub_text">#C9BFF5</color>
     <color name="weak_text">#8F86B8</color>
