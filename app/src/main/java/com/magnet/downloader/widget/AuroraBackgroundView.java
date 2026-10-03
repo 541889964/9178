@@ -1,0 +1,64 @@
+package com.magnet.downloader.widget;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RadialGradient;
+import android.graphics.Shader;
+import android.util.AttributeSet;
+import android.view.View;
+
+/**
+ * 极光背景 —— 三团彩色光斑缓慢游动
+ * 使用硬件层 + postInvalidateOnAnimation 对齐 vsync
+ */
+public class AuroraBackgroundView extends View {
+    private final Paint p1 = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint p2 = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint p3 = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private float phase = 0f;
+    private final int c1 = 0xFFFF6B9D;
+    private final int c2 = 0xFF9B6BFF;
+    private final int c3 = 0xFF5AC8FA;
+
+    public AuroraBackgroundView(Context c) { super(c); init(); }
+    public AuroraBackgroundView(Context c, AttributeSet a) { super(c, a); init(); }
+    public AuroraBackgroundView(Context c, AttributeSet a, int d) { super(c, a, d); init(); }
+
+    private void init() {
+        setClickable(false);
+        setFocusable(false);
+        setLayerType(LAYER_TYPE_HARDWARE, null);
+    }
+
+    @Override
+    protected void onDraw(Canvas cv) {
+        super.onDraw(cv);
+        float w = getWidth(), h = getHeight();
+        if (w <= 0 || h <= 0) return;
+        phase += 0.003f;
+        if (phase > 1f) phase -= 1f;
+
+        float x1 = w * (0.25f + 0.12f * (float) Math.sin(phase * 6.28f));
+        float y1 = h * (0.20f + 0.10f * (float) Math.cos(phase * 6.28f));
+        float x2 = w * (0.75f + 0.10f * (float) Math.cos(phase * 6.28f + 1.5f));
+        float y2 = h * (0.55f + 0.14f * (float) Math.sin(phase * 6.28f + 1.5f));
+        float x3 = w * (0.40f + 0.15f * (float) Math.sin(phase * 6.28f + 3f));
+        float y3 = h * (0.85f + 0.10f * (float) Math.cos(phase * 6.28f + 3f));
+        float r = Math.max(w, h) * 0.55f;
+
+        p1.setShader(new RadialGradient(x1, y1, r,
+                new int[]{(c1 & 0xFFFFFF) | 0x55000000, 0}, null, Shader.TileMode.CLAMP));
+        cv.drawCircle(x1, y1, r, p1);
+
+        p2.setShader(new RadialGradient(x2, y2, r,
+                new int[]{(c2 & 0xFFFFFF) | 0x55000000, 0}, null, Shader.TileMode.CLAMP));
+        cv.drawCircle(x2, y2, r, p2);
+
+        p3.setShader(new RadialGradient(x3, y3, r,
+                new int[]{(c3 & 0xFFFFFF) | 0x44000000, 0}, null, Shader.TileMode.CLAMP));
+        cv.drawCircle(x3, y3, r, p3);
+
+        postInvalidateOnAnimation();
+    }
+}

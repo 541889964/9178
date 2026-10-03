@@ -1,145 +1,309 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:background="@color/bg_deep">
-    <com.xuanyin.app.widget.AuroraBackgroundView
-        android:id="@+id/aurora"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+
     <ImageView android:id="@+id/iv_bg"
-        android:layout_width="match_parent" android:layout_height="match_parent"
-        android:scaleType="centerCrop" android:alpha="0.28" />
-    <LinearLayout android:orientation="vertical"
-        android:layout_width="match_parent" android:layout_height="match_parent">
-        <LinearLayout android:orientation="vertical"
-            android:paddingHorizontal="20dp" android:paddingTop="20dp"
-            android:layout_width="match_parent" android:layout_height="wrap_content">
-            <LinearLayout android:id="@+id/card_greet"
-                android:orientation="vertical" android:padding="22dp"
-                android:background="@drawable/bg_card"
-                android:layout_width="match_parent" android:layout_height="wrap_content">
-                <TextView android:id="@+id/tv_greet"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="早上好呀 ☀️" android:textColor="@color/white"
-                    android:textSize="24sp" android:textStyle="bold" />
-                <TextView android:id="@+id/tv_sub_greet"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp" android:text="今天也要开心呀"
-                    android:textColor="@color/sub_text" android:textSize="13sp" />
-                <TextView android:id="@+id/tv_quote"
-                    android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp" android:padding="14dp"
-                    android:background="@drawable/bg_search"
-                    android:text="♡ 每一天都是新的开始"
-                    android:textColor="@color/white" android:textSize="13sp" />
-            </LinearLayout>
-            <LinearLayout android:id="@+id/card_actions"
-                android:orientation="horizontal" android:layout_marginTop="14dp"
-                android:layout_width="match_parent" android:layout_height="wrap_content">
-                <LinearLayout android:id="@+id/btn_local"
-                    android:orientation="vertical" android:gravity="center"
-                    android:padding="16dp" android:layout_weight="1"
-                    android:background="@drawable/bg_card"
-                    android:layout_width="0dp" android:layout_height="wrap_content">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="♪" android:textSize="22sp" android:textColor="@color/white" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp" android:text="本地"
-                        android:textColor="@color/sub_text" android:textSize="11sp" />
-                </LinearLayout>
-                <LinearLayout android:id="@+id/btn_island"
-                    android:orientation="vertical" android:gravity="center"
-                    android:padding="16dp" android:layout_weight="1"
-                    android:layout_marginStart="10dp" android:background="@drawable/bg_card"
-                    android:layout_width="0dp" android:layout_height="wrap_content">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="◉" android:textSize="22sp" android:textColor="@color/white" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp" android:text="灵动岛"
-                        android:textColor="@color/sub_text" android:textSize="11sp" />
-                </LinearLayout>
-                <LinearLayout android:id="@+id/btn_settings"
-                    android:orientation="vertical" android:gravity="center"
-                    android:padding="16dp" android:layout_weight="1"
-                    android:layout_marginStart="10dp" android:background="@drawable/bg_card"
-                    android:layout_width="0dp" android:layout_height="wrap_content">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="⚙" android:textSize="22sp" android:textColor="@color/white" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp" android:text="设置"
-                        android:textColor="@color/sub_text" android:textSize="11sp" />
-                </LinearLayout>
-            </LinearLayout>
-            <LinearLayout android:id="@+id/card_search"
-                android:orientation="horizontal" android:gravity="center_vertical"
-                android:paddingHorizontal="20dp" android:layout_marginTop="14dp"
-                android:background="@drawable/bg_search"
-                android:layout_width="match_parent" android:layout_height="50dp">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="🔍" android:textSize="15sp" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp" android:text="搜索歌曲 / 歌手 / 专辑"
-                    android:textColor="@color/weak_text" android:textSize="13sp" />
-            </LinearLayout>
-        </LinearLayout>
-        <FrameLayout android:layout_width="match_parent" android:layout_height="0dp"
-            android:layout_weight="1" android:layout_marginTop="14dp">
-            <FrameLayout android:id="@+id/page_local"
-                android:layout_width="match_parent" android:layout_height="match_parent">
-                <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_local"
-                    android:paddingHorizontal="20dp" android:paddingBottom="20dp"
-                    android:clipToPadding="false"
-                    android:layout_width="match_parent" android:layout_height="match_parent"
-                    android:overScrollMode="never" />
-            </FrameLayout>
-            <FrameLayout android:id="@+id/page_online"
-                android:visibility="gone"
-                android:layout_width="match_parent" android:layout_height="match_parent">
-                <androidx.recyclerview.widget.RecyclerView android:id="@+id/rv_online"
-                    android:paddingHorizontal="20dp" android:paddingBottom="20dp"
-                    android:clipToPadding="false"
-                    android:layout_width="match_parent" android:layout_height="match_parent"
-                    android:overScrollMode="never" />
-            </FrameLayout>
-        </FrameLayout>
-        <LinearLayout android:id="@+id/tab_bar"
-            android:orientation="vertical" android:background="#CC0F0D1F"
-            android:layout_width="match_parent" android:layout_height="wrap_content">
-            <View android:layout_width="match_parent" android:layout_height="1dp"
-                android:background="#22FFFFFF" />
-            <FrameLayout android:layout_width="match_parent" android:layout_height="60dp">
-                <LinearLayout android:orientation="horizontal"
-                    android:layout_width="match_parent" android:layout_height="match_parent">
-                    <LinearLayout android:id="@+id/tab_local"
-                        android:orientation="horizontal" android:gravity="center"
-                        android:layout_weight="1" android:layout_width="0dp" android:layout_height="match_parent">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="♪" android:textSize="16sp" android:textColor="@color/white" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp" android:text="本地音乐"
-                            android:textColor="@color/white" android:textSize="13sp" />
-                    </LinearLayout>
-                    <LinearLayout android:id="@+id/tab_online"
-                        android:orientation="horizontal" android:gravity="center"
-                        android:alpha="0.5"
-                        android:layout_weight="1" android:layout_width="0dp" android:layout_height="match_parent">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="☁" android:textSize="16sp" android:textColor="@color/white" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp" android:text="在线音乐"
-                            android:textColor="@color/white" android:textSize="13sp" />
-                    </LinearLayout>
-                </LinearLayout>
-                <View android:id="@+id/tab_indicator"
-                    android:layout_width="70dp" android:layout_height="3dp"
-                    android:layout_gravity="bottom|start"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_gradient_button" />
-            </FrameLayout>
-        </LinearLayout>
-    </LinearLayout>
-<com.xuanyin.app.widget.ParticleFieldView
-        android:id="@+id/particles"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"/>
+
+    <View android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_wallpaper_overlay"/>
+
+    <com.magnet.downloader.widget.AuroraBackgroundView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true"
+            android:overScrollMode="never"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="56dp"
+                android:paddingBottom="20dp">
+
+                <!-- 问候卡 -->
+                <LinearLayout android:id="@+id/card_greet"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="22dp"
+                    android:background="@drawable/bg_card"
+                    android:elevation="6dp">
+
+                    <TextView android:id="@+id/tv_greet"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="凌晨好呀 🌙"
+                        android:textColor="@color/white"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.02"
+                        android:shadowColor="#80000000"
+                        android:shadowDx="0"
+                        android:shadowDy="2"
+                        android:shadowRadius="6"/>
+
+                    <TextView android:id="@+id/tv_sub_greet"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="慢慢来，一切都好"
+                        android:textColor="@color/sub_text"
+                        android:textSize="13sp"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="12dp"
+                        android:background="@drawable/bg_quote">
+
+                        <TextView android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="♡"
+                            android:textColor="#FF6B9D"
+                            android:textSize="13sp"
+                            android:textStyle="bold"/>
+
+                        <TextView android:id="@+id/tv_quote"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="生活明朗，万物可爱"
+                            android:textColor="#E6FFFFFF"
+                            android:textSize="13sp"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 快捷操作 -->
+                <LinearLayout android:id="@+id/card_actions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="horizontal">
+
+                    <FrameLayout android:id="@+id/btn_local"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_card"
+                        android:elevation="4dp">
+                        <LinearLayout android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:paddingTop="20dp"
+                            android:paddingBottom="18dp">
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="♪" android:textColor="@color/white" android:textSize="22sp"/>
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:text="本地" android:textColor="#E6FFFFFF" android:textSize="11sp"/>
+                        </LinearLayout>
+                    </FrameLayout>
+
+                    <FrameLayout android:id="@+id/btn_island"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_card"
+                        android:elevation="4dp">
+                        <LinearLayout android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:paddingTop="20dp"
+                            android:paddingBottom="18dp">
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="◉" android:textColor="@color/white" android:textSize="22sp"/>
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:text="磁力" android:textColor="#E6FFFFFF" android:textSize="11sp"/>
+                        </LinearLayout>
+                    </FrameLayout>
+
+                    <FrameLayout android:id="@+id/btn_settings"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_card"
+                        android:elevation="4dp">
+                        <LinearLayout android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:paddingTop="20dp"
+                            android:paddingBottom="18dp">
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="⚙" android:textColor="@color/white" android:textSize="22sp"/>
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="10dp"
+                                android:text="设置" android:textColor="#E6FFFFFF" android:textSize="11sp"/>
+                        </LinearLayout>
+                    </FrameLayout>
+                </LinearLayout>
+
+                <!-- 搜索栏 -->
+                <LinearLayout android:id="@+id/card_search"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="14dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="18dp"
+                    android:paddingEnd="18dp"
+                    android:background="@drawable/bg_search"
+                    android:elevation="3dp">
+
+                    <TextView android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔍" android:textSize="14sp" android:alpha="0.7"/>
+
+                    <TextView android:id="@+id/tv_search_hint"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="10dp"
+                        android:text="搜索下载 / 链接 / 文件名"
+                        android:textColor="@color/weak_text"
+                        android:textSize="13sp"
+                        android:singleLine="true"/>
+                </LinearLayout>
+
+                <!-- 段落标题 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp"
+                    android:layout_marginBottom="12dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <TextView android:id="@+id/tv_section"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="下载列表"
+                        android:textColor="@color/white"
+                        android:textSize="15sp"
+                        android:textStyle="bold"/>
+                    <TextView android:id="@+id/tv_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 项"
+                        android:textColor="@color/weak_text"
+                        android:textSize="11sp"/>
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    android:overScrollMode="never"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"/>
+            </LinearLayout>
+        </ScrollView>
+
+        <FrameLayout android:id="@+id/tab_bar"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            android:background="#0A0612">
+
+            <View android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#1AFFFFFF"/>
+
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <FrameLayout android:id="@+id/tab_local"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+                    <LinearLayout android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView android:id="@+id/tv_tab1_icon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="♪" android:textColor="@color/white" android:textSize="15sp"/>
+                        <TextView android:id="@+id/tv_tab1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="本地下载" android:textColor="@color/white" android:textSize="13sp"/>
+                    </LinearLayout>
+                    <View android:id="@+id/indicator1"
+                        android:layout_width="60dp"
+                        android:layout_height="2dp"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="4dp"
+                        android:background="@drawable/bg_tab_indicator"/>
+                </FrameLayout>
+
+                <FrameLayout android:id="@+id/tab_online"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+                    <LinearLayout android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView android:id="@+id/tv_tab2_icon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="☁" android:textColor="@color/weak_text" android:textSize="15sp"/>
+                        <TextView android:id="@+id/tv_tab2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="在线资源" android:textColor="@color/weak_text" android:textSize="13sp"/>
+                    </LinearLayout>
+                    <View android:id="@+id/indicator2"
+                        android:layout_width="60dp"
+                        android:layout_height="2dp"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="4dp"
+                        android:background="@drawable/bg_tab_indicator"
+                        android:visibility="invisible"/>
+                </FrameLayout>
+            </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
 </FrameLayout>

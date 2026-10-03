@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg_deep">#0A0817</color>
-    <color name="bg_surface">#151329</color>
-    <color name="pink">#FF6B9D</color>
-    <color name="purple">#9B6BFF</color>
+    <color name="bg_deep">#0A0612</color>
+    <color name="bg_purple">#1A0F2E</color>
     <color name="white">#FFFFFF</color>
     <color name="sub_text">#C9BFF5</color>
     <color name="weak_text">#8F86B8</color>
+    <color name="accent_pink">#FF6B9D</color>
+    <color name="accent_purple">#9B6BFF</color>
+    <color name="accent_blue">#5AC8FA</color>
+    <color name="accent_green">#30D158</color>
 </resources>

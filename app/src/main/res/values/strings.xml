@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">家乡分享</string>
+    <string name="app_name">磁力快下</string>
+    <string name="greet_morning">早上好呀 ☀️</string>
+    <string name="greet_noon">中午好呀 🍜</string>
+    <string name="greet_afternoon">下午好呀 ☕</string>
+    <string name="greet_evening">晚上好呀 🌆</string>
+    <string name="greet_night">夜深了 🌌</string>
+    <string name="greet_dawn">凌晨好呀 🌙</string>
+    <string name="sub_greet">慢慢来，一切都好</string>
+    <string name="quote_default">生活明朗，万物可爱</string>
+    <string name="search_hint">搜索下载 / 链接 / 文件名</string>
+    <string name="section_title">下载列表</string>
+    <string name="tab_local">本地下载</string>
+    <string name="tab_online">在线资源</string>
+    <string name="btn_local">本地</string>
+    <string name="btn_island">磁力</string>
+    <string name="btn_settings">设置</string>
+    <string name="announcement_title">磁力快下 · 公告</string>
 </resources>

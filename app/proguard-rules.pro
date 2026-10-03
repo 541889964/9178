@@ -1,3 +1,2 @@
--keep class org.nanohttpd.** { *; }
--keep class com.google.zxing.** { *; }
--dontwarn org.nanohttpd.**
+-keep class com.magnet.downloader.** { *; }
+-dontwarn **

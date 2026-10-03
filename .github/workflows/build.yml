@@ -1,50 +1,24 @@
-name: Build APK
+name: Build MagnetDownloader
 on:
-  push:
-    branches: [ main ]
+  push: { branches: [ main, master ] }
   workflow_dispatch:
-permissions:
-  contents: write
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: android-actions/setup-android@v3
         with:
-          distribution: temurin
-          java-version: '17'
-      - uses: android-actions/setup-android@v4
+          packages: 'platform-tools platforms;android-34 build-tools;34.0.0 cmdline-tools;latest'
+          log-accepted-android-sdk-licenses: false
+      - run: yes | sdkmanager --licenses > /dev/null 2>&1 || true
+      - run: chmod +x gradlew 2>/dev/null || true
+      - run: ./gradlew assembleDebug --no-daemon --stacktrace
+      - uses: actions/upload-artifact@v4
         with:
-          packages: 'platform-tools'
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: 8.9
-          cache-disabled: true
-      - name: Verify RingtoneHelper
-        run: |
-          echo "════ RingtoneHelper 完整内容 ════"
-          cat app/src/main/java/com/xuanyin/app/util/RingtoneHelper.java
-          echo "════ wc ════"
-          wc -c -l app/src/main/java/com/xuanyin/app/util/RingtoneHelper.java
-          echo "════ 检查 setAlarm 签名 ════"
-          grep -n "setAlarm" app/src/main/java/com/xuanyin/app/util/RingtoneHelper.java
-      - name: Clean build
-        run: rm -rf app/build .gradle/caches
-      - name: Build APK
-        run: gradle assembleRelease --no-daemon --no-build-cache --rerun-tasks
-      - if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: LanShare-release
-          path: app/build/outputs/apk/release/*.apk
-          retention-days: 30
-          if-no-files-found: warn
-      - if: success()
-        continue-on-error: true
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: build-${{ github.run_number }}
-          files: app/build/outputs/apk/release/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: magnet-apk
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 90
