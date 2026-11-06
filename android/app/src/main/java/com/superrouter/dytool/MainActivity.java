@@ -259,8 +259,7 @@ public class MainActivity extends AppCompatActivity {
                     setBusy(false, null);
                     hideProgress();
                     showStatusOk("视频已保存");
-                    toast("✅ 视频已保存
-" + path);
+                    toast("✅ 视频已保存\n" + path);
                 });
             } catch (Exception e) {
                 final String msg = e.getMessage() == null ? e.toString() : e.getMessage();
@@ -308,8 +307,7 @@ public class MainActivity extends AppCompatActivity {
                     setBusy(false, null);
                     hideProgress();
                     showStatusOk("音频已提取");
-                    toast("🎵 音频已保存
-" + path);
+                    toast("🎵 音频已保存\n" + path);
                 });
             } catch (Exception e) {
                 final String msg = e.getMessage() == null ? e.toString() : e.getMessage();
@@ -352,8 +350,7 @@ public class MainActivity extends AppCompatActivity {
                 ui.post(() -> {
                     setBusy(false, null);
                     showStatusOk("封面已保存");
-                    toast("🖼 封面已保存
-" + path);
+                    toast("🖼 封面已保存\n" + path);
                 });
             } catch (Exception e) {
                 final String msg = e.getMessage() == null ? e.toString() : e.getMessage();
@@ -389,8 +386,7 @@ public class MainActivity extends AppCompatActivity {
             meta.append("📐 ").append(it.width).append('×').append(it.height);
         }
         if (it.sizeBytes > 0) {
-            if (meta.length() > 0) meta.append("
-");
+            if (meta.length() > 0) meta.append("\n");
             meta.append("💾 ").append(fmtSize(it.sizeBytes));
         }
         if (it.durationSec > 0) {
