@@ -94,14 +94,17 @@ public class MusicApi {
                     }
                 }
 
-                if (!m.id.isEmpty()) out.add(m);
+                boolean hasRight = true;
+                if (priv != null) {
+                    int pl = priv.optInt("pl", 0);
+                    hasRight = pl > 0;
+                }
+                if (!m.id.isEmpty() && hasRight) out.add(m);
             }
 
             // 免费可播的排前面
-            out.sort((a, b) -> {
-                if (a.playable != b.playable) return a.playable ? -1 : 1;
-                return 0;
-            });
+            // 优先免费曲目
+            out.sort((a, b) -> Integer.compare(a.fee, b.fee));
 
             fillCovers(out);
             return out;

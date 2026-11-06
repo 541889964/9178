@@ -11,31 +11,29 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingLeft="16dp"
-        android:paddingTop="18dp"
-        android:paddingRight="16dp"
-        android:paddingBottom="28dp">
+        android:paddingLeft="20dp"
+        android:paddingTop="22dp"
+        android:paddingRight="20dp"
+        android:paddingBottom="30dp">
 
-        <!-- 标题区 -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="视频工具"
             android:textColor="@color/txt"
-            android:textSize="26sp"
+            android:textSize="28sp"
             android:textStyle="bold"
-            android:letterSpacing="-0.01" />
+            android:letterSpacing="-0.02" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="16dp"
-            android:text="粘贴分享链接，一键提取视频 · 音频 · 封面"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="18dp"
+            android:text="粘贴分享链接，提取视频 · 原声 · 封面 · 图集"
             android:textColor="@color/sub"
             android:textSize="13sp" />
 
-        <!-- 输入卡片 -->
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.DyTool.Card"
             android:layout_width="match_parent"
@@ -45,7 +43,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="14dp">
+                android:padding="16dp">
 
                 <EditText
                     android:id="@+id/etInput"
@@ -56,8 +54,8 @@
                     android:hint="@string/hint_input"
                     android:inputType="textMultiLine"
                     android:maxLines="5"
-                    android:minHeight="92dp"
-                    android:padding="13dp"
+                    android:minHeight="96dp"
+                    android:padding="14dp"
                     android:textColor="@color/txt"
                     android:textColorHint="@color/hint"
                     android:textSize="14sp" />
@@ -65,14 +63,14 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="13dp"
                     android:orientation="horizontal">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnPaste"
                         style="@style/Widget.DyTool.Button.Tonal"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="50dp"
                         android:layout_weight="1"
                         android:insetTop="0dp"
                         android:insetBottom="0dp"
@@ -83,14 +81,14 @@
                         app:iconSize="18dp" />
 
                     <Space
-                        android:layout_width="10dp"
+                        android:layout_width="11dp"
                         android:layout_height="1dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnParse"
                         style="@style/Widget.DyTool.Button.Primary"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="50dp"
                         android:layout_weight="1.5"
                         android:text="@string/btn_parse"
                         app:icon="@drawable/ic_rocket"
@@ -103,7 +101,7 @@
                     android:id="@+id/boxStatus"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="13dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:visibility="gone">
@@ -118,7 +116,7 @@
                         android:id="@+id/tvStatus"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="9dp"
+                        android:layout_marginStart="10dp"
                         android:layout_weight="1"
                         android:textColor="@color/sub"
                         android:textSize="13sp" />
@@ -126,26 +124,24 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- 结果卡片 -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardResult"
             style="@style/Widget.DyTool.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="16dp"
             android:visibility="gone">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="14dp">
+                android:padding="16dp">
 
-                <!-- 视频预览区 -->
                 <FrameLayout
                     android:id="@+id/previewBox"
                     android:layout_width="match_parent"
-                    android:layout_height="230dp"
+                    android:layout_height="240dp"
                     android:background="#000000">
 
                     <VideoView
@@ -170,10 +166,10 @@
                         android:background="@drawable/bg_badge_ok"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:paddingLeft="16dp"
-                        android:paddingTop="10dp"
-                        android:paddingRight="18dp"
-                        android:paddingBottom="10dp">
+                        android:paddingLeft="17dp"
+                        android:paddingTop="11dp"
+                        android:paddingRight="19dp"
+                        android:paddingBottom="11dp">
 
                         <ImageView
                             android:layout_width="20dp"
@@ -185,7 +181,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="7dp"
-                            android:text="@string/btn_preview"
+                            android:text="预览播放"
                             android:textColor="#04240F"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -208,10 +204,22 @@
                         android:textStyle="bold" />
 
                     <ImageButton
+                        android:id="@+id/btnFullscreen"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="10dp"
+                        android:background="@drawable/bg_badge_warn"
+                        android:contentDescription="fullscreen"
+                        android:padding="9dp"
+                        android:src="@drawable/ic_fullscreen"
+                        android:visibility="gone" />
+
+                    <ImageButton
                         android:id="@+id/btnClosePreview"
                         android:layout_width="34dp"
                         android:layout_height="34dp"
-                        android:layout_gravity="top|end"
+                        android:layout_gravity="bottom|end"
                         android:layout_margin="10dp"
                         android:background="@drawable/bg_badge_warn"
                         android:contentDescription="close"
@@ -224,18 +232,19 @@
                     android:id="@+id/tvTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="14dp"
                     android:ellipsize="end"
                     android:maxLines="3"
                     android:textColor="@color/txt"
                     android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:lineSpacingExtra="3dp" />
 
                 <TextView
                     android:id="@+id/tvTags"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="7dp"
+                    android:layout_marginTop="8dp"
                     android:textColor="#FF8FA4"
                     android:textSize="12sp" />
 
@@ -243,23 +252,38 @@
                     android:id="@+id/tvMeta"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="9dp"
-                    android:lineSpacingExtra="4dp"
+                    android:layout_marginTop="10dp"
+                    android:lineSpacingExtra="5dp"
                     android:textColor="@color/sub"
                     android:textSize="12.5sp" />
 
-                <!-- 三个操作按钮 -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvPics"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="下载"
+                    android:textColor="@color/sub"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="8dp"
                     android:orientation="horizontal">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnVideo"
                         style="@style/Widget.DyTool.Button.Green"
                         android:layout_width="0dp"
-                        android:layout_height="50dp"
+                        android:layout_height="52dp"
                         android:layout_weight="1"
                         android:paddingLeft="0dp"
                         android:paddingRight="0dp"
@@ -271,14 +295,14 @@
                         app:iconSize="16dp" />
 
                     <Space
-                        android:layout_width="8dp"
+                        android:layout_width="9dp"
                         android:layout_height="1dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnAudio"
                         style="@style/Widget.DyTool.Button.Blue"
                         android:layout_width="0dp"
-                        android:layout_height="50dp"
+                        android:layout_height="52dp"
                         android:layout_weight="1"
                         android:paddingLeft="0dp"
                         android:paddingRight="0dp"
@@ -290,14 +314,14 @@
                         app:iconSize="16dp" />
 
                     <Space
-                        android:layout_width="8dp"
+                        android:layout_width="9dp"
                         android:layout_height="1dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnCover"
                         style="@style/Widget.DyTool.Button.Orange"
                         android:layout_width="0dp"
-                        android:layout_height="50dp"
+                        android:layout_height="52dp"
                         android:layout_weight="1"
                         android:paddingLeft="0dp"
                         android:paddingRight="0dp"
@@ -309,12 +333,26 @@
                         app:iconSize="16dp" />
                 </LinearLayout>
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnOriginAudio"
+                    style="@style/Widget.DyTool.Button.Tonal"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="9dp"
+                    android:text="下载抖音原声"
+                    android:textSize="13sp"
+                    app:icon="@drawable/ic_music"
+                    app:iconGravity="textStart"
+                    app:iconPadding="6dp"
+                    app:iconSize="17dp"
+                    android:visibility="gone" />
+
                 <ProgressBar
                     android:id="@+id/progressBar"
                     style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="match_parent"
                     android:layout_height="6dp"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="13dp"
                     android:progressTint="@color/pri"
                     android:visibility="gone" />
             </LinearLayout>

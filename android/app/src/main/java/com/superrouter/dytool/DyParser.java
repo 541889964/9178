@@ -177,7 +177,6 @@ public class DyParser {
             }
         }
 
-        // 作者：可能是对象也可能是字符串
         Object au = d.opt("author");
         if (au instanceof JSONObject) {
             JSONObject ao = (JSONObject) au;
@@ -189,9 +188,46 @@ public class DyParser {
         double durMs = d.optDouble("duration_ms", 0);
         it.durationSec = durMs > 0 ? durMs / 1000.0 : d.optDouble("duration", 0);
 
+        // 抖音原声音频
+        JSONObject music = d.optJSONObject("music");
+        if (music != null) {
+            it.musicUrl = music.optString("play_url", "");
+            it.musicTitle = music.optString("title", "");
+            it.musicAuthor = music.optString("author", "");
+        }
+
         JSONObject media = d.optJSONObject("media");
         if (media == null) throw new IOException("没有媒体数据");
 
+        // 图集作品
+        JSONArray images = media.optJSONArray("images");
+        if (images != null && images.length() > 0) {
+            it.type = DyItem.TYPE_IMAGE;
+            for (int i = 0; i < images.length(); i++) {
+                JSONObject im = images.optJSONObject(i);
+                if (im == null) continue;
+                DyItem.Pic pic = new DyItem.Pic();
+                pic.imageUrl = im.optString("url", "");
+                if (pic.imageUrl.isEmpty()) {
+                    JSONArray us = im.optJSONArray("urls");
+                    if (us != null && us.length() > 0) pic.imageUrl = us.optString(0, "");
+                }
+                pic.videoUrl = im.optString("video_url", "");
+                pic.width = im.optInt("width", 0);
+                pic.height = im.optInt("height", 0);
+                if (!pic.imageUrl.isEmpty()) it.pics.add(pic);
+            }
+            JSONArray covers2 = media.optJSONArray("covers");
+            if (covers2 != null && covers2.length() > 0) {
+                JSONObject c = covers2.optJSONObject(0);
+                if (c != null) it.cover = c.optString("url", "");
+            }
+            if (it.pics.isEmpty()) throw new IOException("没有拿到图片");
+            return it;
+        }
+
+        // 视频作品
+        it.type = DyItem.TYPE_VIDEO;
         JSONObject video = media.optJSONObject("video");
         if (video != null) {
             it.width = video.optInt("width", 0);
@@ -209,6 +245,19 @@ public class DyParser {
             if (it.videoUrls.isEmpty()) {
                 String u = video.optString("url", "");
                 if (!u.isEmpty()) it.videoUrls.add(u);
+            }
+        }
+
+        // streams 兜底
+        if (it.videoUrls.isEmpty()) {
+            JSONArray streams = media.optJSONArray("streams");
+            if (streams != null) {
+                for (int i = 0; i < streams.length(); i++) {
+                    JSONObject st = streams.optJSONObject(i);
+                    if (st == null) continue;
+                    String u = st.optString("url", "");
+                    if (!u.isEmpty()) it.videoUrls.add(u);
+                }
             }
         }
 

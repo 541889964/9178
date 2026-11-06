@@ -42,6 +42,19 @@
             </intent-filter>
         </activity>
 
+
+        <activity
+            android:name=".FullscreenPlayerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.DyTool.Fullscreen"
+            android:exported="false" />
+
+        <activity
+            android:name=".ImageViewerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.DyTool.Fullscreen"
+            android:exported="false" />
+
         <service
             android:name=".KeepAliveService"
             android:exported="false"

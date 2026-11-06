@@ -49,12 +49,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 视差 + 深度位移 + 渐进透明度，营造层叠纵深质感
         pager.setPageTransformer((page, position) -> {
             float abs = Math.abs(position);
-            float scale = 0.90f + (1 - abs) * 0.10f;
+            float width = page.getWidth();
+
+            // 横向视差：相邻页以 35% 速度跟随，产生景深
+            page.setTranslationX(-position * width * 0.35f);
+
+            // 缩放：1.0 → 0.82
+            float scale = 1f - abs * 0.18f;
             page.setScaleX(scale);
             page.setScaleY(scale);
-            page.setAlpha(0.55f + (1 - abs) * 0.45f);
+
+            // 透明度：1.0 → 0.35
+            page.setAlpha(1f - abs * 0.65f);
+
+            // 圆角随滑动收放
+            float radius = abs * 28f;
+            page.setOutlineProvider(null);
+            page.setClipToOutline(false);
         });
 
         pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {

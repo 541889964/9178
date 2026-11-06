@@ -3,10 +3,9 @@ package com.superrouter.dytool;
 import android.app.Activity;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -28,27 +27,29 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.File;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
-
 public class VideoFragment extends Fragment {
 
     private EditText etInput;
-    private MaterialButton btnPaste, btnParse, btnVideo, btnAudio, btnCover;
+    private MaterialButton btnPaste, btnParse, btnVideo, btnAudio, btnCover, btnOriginAudio;
     private LinearLayout boxStatus;
     private MaterialCardView cardResult;
     private ProgressBar progressSmall, progressBar;
@@ -56,17 +57,16 @@ public class VideoFragment extends Fragment {
     private ImageView ivCover;
     private VideoView videoView;
     private LinearLayout playMask;
-    private ImageButton btnClosePreview;
+    private ImageButton btnClosePreview, btnFullscreen;
+    private RecyclerView rvPics;
     private View previewBox;
 
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final ExecutorService pool = Executors.newFixedThreadPool(3);
     private final DyParser parser = new DyParser();
-    private final OkHttpClient http = App.http();
 
     private DyItem current;
     private volatile boolean busy = false;
-    private File previewFile;
 
     @Nullable
     @Override
@@ -85,6 +85,7 @@ public class VideoFragment extends Fragment {
         btnVideo = v.findViewById(R.id.btnVideo);
         btnAudio = v.findViewById(R.id.btnAudio);
         btnCover = v.findViewById(R.id.btnCover);
+        btnOriginAudio = v.findViewById(R.id.btnOriginAudio);
         boxStatus = v.findViewById(R.id.boxStatus);
         cardResult = v.findViewById(R.id.cardResult);
         progressSmall = v.findViewById(R.id.progressSmall);
@@ -98,25 +99,30 @@ public class VideoFragment extends Fragment {
         videoView = v.findViewById(R.id.videoView);
         playMask = v.findViewById(R.id.playMask);
         btnClosePreview = v.findViewById(R.id.btnClosePreview);
+        btnFullscreen = v.findViewById(R.id.btnFullscreen);
+        rvPics = v.findViewById(R.id.rvPics);
         previewBox = v.findViewById(R.id.previewBox);
+
+        rvPics.setLayoutManager(new GridLayoutManager(getContext(), 3));
+        rvPics.setNestedScrollingEnabled(false);
 
         btnPaste.setOnClickListener(x -> doPaste());
         btnParse.setOnClickListener(x -> doParse());
         btnVideo.setOnClickListener(x -> doDownloadVideo());
         btnAudio.setOnClickListener(x -> doExtractAudio());
         btnCover.setOnClickListener(x -> doDownloadCover());
+        btnOriginAudio.setOnClickListener(x -> doDownloadOriginAudio());
         playMask.setOnClickListener(x -> startPreview());
         btnClosePreview.setOnClickListener(x -> stopPreview());
+        btnFullscreen.setOnClickListener(x -> openFullscreen());
     }
 
-    /** 供 MainActivity 从分享进来时调用 */
     public void parseFromText(String text) {
         if (etInput == null) return;
         etInput.setText(text);
         doParse();
     }
 
-    // ---------------- 粘贴 ----------------
     private void doPaste() {
         try {
             Activity a = getActivity();
@@ -139,7 +145,6 @@ public class VideoFragment extends Fragment {
         }
     }
 
-    // ---------------- 解析 ----------------
     private void doParse() {
         if (busy) {
             toast("正在处理中，请稍候");
@@ -172,8 +177,7 @@ public class VideoFragment extends Fragment {
                     current = item;
                     render(item);
                     setBusy(false, null);
-                    showStatusOk("解析成功");
-                    loadCover(item.cover);
+                    showStatusOk(item.isImagePost() ? "解析成功，共 " + item.pics.size() + " 张图" : "解析成功");
                 });
             } catch (Exception e) {
                 final String msg = e.getMessage() == null ? e.toString() : e.getMessage();
@@ -185,25 +189,42 @@ public class VideoFragment extends Fragment {
         });
     }
 
-    // ---------------- 预览播放 ----------------
-    private void startPreview() {
-        if (current == null) return;
-        playMask.setVisibility(View.GONE);
-        ivCover.setVisibility(View.GONE);
-        btnClosePreview.setVisibility(View.VISIBLE);
-
-        // 优先播放已下载文件，否则在线播放首条直链
+    // ---------------- 全屏 ----------------
+    private void openFullscreen() {
+        if (current == null || current.videoUrls.isEmpty()) {
+            toast("没有可播放的视频");
+            return;
+        }
         File local = new File(App.outDir(), current.safeName() + ".mp4");
         String uri;
         if (local.exists() && local.length() > 1024) {
-            previewFile = local;
-            uri = Uri.fromFile(local).toString();
+            uri = android.net.Uri.fromFile(local).toString();
+        } else {
+            uri = current.videoUrls.get(0);
+        }
+        Intent i = new Intent(getActivity(), FullscreenPlayerActivity.class);
+        i.putExtra(FullscreenPlayerActivity.EXTRA_URL, uri);
+        i.putExtra(FullscreenPlayerActivity.EXTRA_TITLE, current.title);
+        startActivity(i);
+    }
+
+    private void startPreview() {
+        if (current == null || current.videoUrls.isEmpty()) return;
+        playMask.setVisibility(View.GONE);
+        ivCover.setVisibility(View.GONE);
+        btnClosePreview.setVisibility(View.VISIBLE);
+        btnFullscreen.setVisibility(View.VISIBLE);
+
+        File local = new File(App.outDir(), current.safeName() + ".mp4");
+        String uri;
+        if (local.exists() && local.length() > 1024) {
+            uri = android.net.Uri.fromFile(local).toString();
         } else {
             uri = current.videoUrls.get(0);
         }
 
         videoView.setVisibility(View.VISIBLE);
-        videoView.setVideoURI(Uri.parse(uri));
+        videoView.setVideoURI(android.net.Uri.parse(uri));
         videoView.setOnPreparedListener(mp -> {
             mp.setLooping(false);
             videoView.start();
@@ -225,21 +246,23 @@ public class VideoFragment extends Fragment {
             }
         } catch (Exception ignored) {
         }
-        if (ivCover != null) ivCover.setVisibility(View.VISIBLE);
-        if (playMask != null) playMask.setVisibility(View.VISIBLE);
+        if (ivCover != null && current != null && !current.isImagePost()) {
+            ivCover.setVisibility(View.VISIBLE);
+        }
+        if (playMask != null && current != null && !current.isImagePost()) {
+            playMask.setVisibility(View.VISIBLE);
+        }
         if (btnClosePreview != null) btnClosePreview.setVisibility(View.GONE);
+        if (btnFullscreen != null) btnFullscreen.setVisibility(View.GONE);
     }
 
-    // ---------------- 下载视频 ----------------
+    // ---------------- 下载 ----------------
     private void doDownloadVideo() {
         if (current == null) {
             toast("请先解析");
             return;
         }
-        if (busy) {
-            toast("正在处理中，请稍候");
-            return;
-        }
+        if (busy) return;
         setBusy(true, "正在下载视频…");
 
         pool.execute(() -> {
@@ -268,16 +291,54 @@ public class VideoFragment extends Fragment {
         });
     }
 
-    // ---------------- 提取音频 ----------------
+    private void doDownloadOriginAudio() {
+        if (current == null || TextUtils.isEmpty(current.musicUrl)) {
+            toast("该作品没有原声");
+            return;
+        }
+        if (busy) return;
+        setBusy(true, "正在下载原声…");
+
+        pool.execute(() -> {
+            try {
+                String name = current.musicTitle == null ? "origin_audio" : current.musicTitle;
+                name = DyItem.sanitize(name);
+                if (name.length() > 50) name = name.substring(0, 50);
+                if (name.isEmpty()) name = "origin_audio_" + current.awemeId;
+
+                File dest = new File(App.outDir(), name + ".mp3");
+                List<String> urls = new ArrayList<>();
+                urls.add(current.musicUrl);
+
+                File f = Downloader.download(urls, dest, (pct, done, total) ->
+                        ui.post(() -> showProgress(pct, "正在下载原声 ", done, total)), false);
+
+                ui.post(() -> showProgress(-2, "正在保存到音乐库…", 0, 0));
+                String path = MediaSaver.save(getActivity(), f, 1);
+
+                ui.post(() -> {
+                    setBusy(false, null);
+                    hideProgress();
+                    showStatusOk("原声已保存");
+                    toast("原声已保存到 " + path);
+                });
+            } catch (Exception e) {
+                final String msg = e.getMessage() == null ? e.toString() : e.getMessage();
+                ui.post(() -> {
+                    setBusy(false, null);
+                    hideProgress();
+                    showStatusErr("原声下载失败：" + msg);
+                });
+            }
+        });
+    }
+
     private void doExtractAudio() {
         if (current == null) {
             toast("请先解析");
             return;
         }
-        if (busy) {
-            toast("正在处理中，请稍候");
-            return;
-        }
+        if (busy) return;
         setBusy(true, "正在提取音频…");
 
         pool.execute(() -> {
@@ -317,7 +378,6 @@ public class VideoFragment extends Fragment {
         });
     }
 
-    // ---------------- 下载封面 ----------------
     private void doDownloadCover() {
         if (current == null) {
             toast("请先解析");
@@ -327,10 +387,7 @@ public class VideoFragment extends Fragment {
             toast("该作品没有封面");
             return;
         }
-        if (busy) {
-            toast("正在处理中，请稍候");
-            return;
-        }
+        if (busy) return;
         setBusy(true, "正在下载封面…");
 
         pool.execute(() -> {
@@ -358,7 +415,7 @@ public class VideoFragment extends Fragment {
 
     // ---------------- 渲染 ----------------
     private void render(DyItem it) {
-        tvTitle.setText(it.title.isEmpty() ? "抖音视频" : it.title);
+        tvTitle.setText(it.title.isEmpty() ? "抖音作品" : it.title);
 
         if (it.tags.isEmpty()) {
             tvTags.setVisibility(View.GONE);
@@ -374,43 +431,141 @@ public class VideoFragment extends Fragment {
 
         StringBuilder meta = new StringBuilder();
         if (!it.author.isEmpty()) meta.append("作者 ").append(it.author);
-        if (it.width > 0 && it.height > 0) {
+        if (it.isImagePost()) {
             if (meta.length() > 0) meta.append("    ");
-            meta.append(it.width).append('×').append(it.height);
-        }
-        if (it.sizeBytes > 0) {
-            if (meta.length() > 0) meta.append("\n");
-            meta.append("大小 ").append(fmtSize(it.sizeBytes));
-        }
-        if (it.durationSec > 0) {
-            if (meta.length() > 0) meta.append("    ");
-            meta.append("时长 ").append(fmtDuration(it.durationSec));
+            meta.append(it.pics.size()).append(" 张图片");
+        } else {
+            if (it.width > 0 && it.height > 0) {
+                if (meta.length() > 0) meta.append("    ");
+                meta.append(it.width).append('x').append(it.height);
+            }
+            if (it.sizeBytes > 0) {
+                if (meta.length() > 0) meta.append("\n");
+                meta.append("大小 ").append(fmtSize(it.sizeBytes));
+            }
+            if (it.durationSec > 0) {
+                if (meta.length() > 0) meta.append("    ");
+                meta.append("时长 ").append(fmtDuration(it.durationSec));
+            }
         }
         tvMeta.setText(meta.toString());
 
-        tvBadge.setText(it.watermark ? "含水印" : "无水印");
+        if (it.isImagePost()) {
+            tvBadge.setText("图集");
+            previewBox.setVisibility(View.GONE);
+            rvPics.setVisibility(View.VISIBLE);
+            btnVideo.setVisibility(View.GONE);
+            btnAudio.setVisibility(View.GONE);
+            btnCover.setVisibility(View.GONE);
+            bindPics(it);
+        } else {
+            tvBadge.setText(it.watermark ? "含水印" : "无水印");
+            previewBox.setVisibility(View.VISIBLE);
+            rvPics.setVisibility(View.GONE);
+            btnVideo.setVisibility(View.VISIBLE);
+            btnAudio.setVisibility(View.VISIBLE);
+            btnCover.setVisibility(View.VISIBLE);
 
-        playMask.setVisibility(View.VISIBLE);
-        ivCover.setVisibility(View.VISIBLE);
-        videoView.setVisibility(View.GONE);
-        btnClosePreview.setVisibility(View.GONE);
+            playMask.setVisibility(View.VISIBLE);
+            ivCover.setVisibility(View.VISIBLE);
+            videoView.setVisibility(View.GONE);
+            btnClosePreview.setVisibility(View.GONE);
+            btnFullscreen.setVisibility(View.GONE);
+            loadCover(it.cover);
+        }
+
+        btnOriginAudio.setVisibility(TextUtils.isEmpty(it.musicUrl) ? View.GONE : View.VISIBLE);
+        if (!TextUtils.isEmpty(it.musicUrl)) {
+            String nm = TextUtils.isEmpty(it.musicTitle) ? "抖音原声" : it.musicTitle;
+            btnOriginAudio.setText("下载原声 · " + nm);
+        }
 
         cardResult.setVisibility(View.VISIBLE);
         cardResult.setAlpha(0f);
-        cardResult.animate().alpha(1f).setDuration(200).start();
+        cardResult.animate().alpha(1f).setDuration(220).start();
+    }
+
+    private void bindPics(DyItem it) {
+        rvPics.setAdapter(new PicGridAdapter(it.pics));
     }
 
     private void loadCover(String url) {
         if (TextUtils.isEmpty(url) || ivCover == null) return;
-        com.bumptech.glide.Glide.with(VideoFragment.this)
+        Glide.with(VideoFragment.this)
                 .load(url)
-                .apply(new com.bumptech.glide.request.RequestOptions()
+                .apply(new RequestOptions()
                         .placeholder(R.drawable.bg_cover_round)
                         .error(R.drawable.bg_cover_round)
-                        .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .centerCrop()
                         .timeout(10000))
                 .into(ivCover);
+    }
+
+    // ---------------- 图集适配器 ----------------
+    private class PicGridAdapter extends RecyclerView.Adapter<PicGridAdapter.VH> {
+        private final List<DyItem.Pic> list;
+
+        PicGridAdapter(List<DyItem.Pic> list) {
+            this.list = list;
+        }
+
+        @NonNull
+        @Override
+        public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View v = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_pic_grid, parent, false);
+            return new VH(v);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull VH h, int position) {
+            DyItem.Pic p = list.get(position);
+            Glide.with(VideoFragment.this)
+                    .load(p.imageUrl)
+                    .apply(new RequestOptions()
+                            .placeholder(R.drawable.bg_cover_round)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .centerCrop())
+                    .into(h.img);
+            h.gif.setVisibility(p.isAnimated() ? View.VISIBLE : View.GONE);
+            h.itemView.setOnClickListener(v -> openViewer(position));
+        }
+
+        @Override
+        public int getItemCount() {
+            return list.size();
+        }
+
+        class VH extends RecyclerView.ViewHolder {
+            ImageView img;
+            TextView gif;
+
+            VH(@NonNull View v) {
+                super(v);
+                img = v.findViewById(R.id.ivGrid);
+                gif = v.findViewById(R.id.tvGifTag);
+            }
+        }
+    }
+
+    private void openViewer(int index) {
+        if (current == null) return;
+        try {
+            JSONArray arr = new JSONArray();
+            for (DyItem.Pic p : current.pics) {
+                JSONObject o = new JSONObject();
+                o.put("img", p.imageUrl);
+                o.put("video", p.videoUrl == null ? "" : p.videoUrl);
+                arr.put(o);
+            }
+            Intent i = new Intent(getActivity(), ImageViewerActivity.class);
+            i.putExtra(ImageViewerActivity.EXTRA_JSON, arr.toString());
+            i.putExtra(ImageViewerActivity.EXTRA_TITLE, current.title);
+            startActivity(i);
+        } catch (Exception e) {
+            toast("打开失败");
+        }
     }
 
     // ---------------- 状态 ----------------
@@ -420,6 +575,7 @@ public class VideoFragment extends Fragment {
         btnVideo.setEnabled(!b);
         btnAudio.setEnabled(!b);
         btnCover.setEnabled(!b);
+        btnOriginAudio.setEnabled(!b);
         btnParse.setAlpha(b ? 0.55f : 1f);
         if (b && msg != null) showStatus(msg);
     }
@@ -468,7 +624,6 @@ public class VideoFragment extends Fragment {
         progressBar.setIndeterminate(false);
     }
 
-    // ---------------- 工具 ----------------
     static String fmtSize(long b) {
         if (b <= 0) return "0 B";
         String[] u = {"B", "KB", "MB", "GB"};
