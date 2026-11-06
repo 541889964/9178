@@ -192,10 +192,10 @@ public class MusicFragment extends Fragment {
                 DyItem item = new DyParser().parse(link);
                 // 从标题提取音乐名：去掉 #话题 @提及
                 String title = item.title == null ? "" : item.title;
-                title = title.replaceAll("#[^\s#@]+", " ")
-                        .replaceAll("@[^\s#@]+", " ")
-                        .replaceAll("[《》\[\]【】]", " ")
-                        .replaceAll("\s+", " ")
+                title = title.replaceAll("#[^\\s#@]+", " ")
+                        .replaceAll("@[^\\s#@]+", " ")
+                        .replaceAll("[《》\\[\\]【】]", " ")
+                        .replaceAll("\\s+", " ")
                         .trim();
                 if (title.isEmpty()) throw new Exception("无法识别视频音乐");
 
