@@ -1,0 +1,82 @@
+﻿2026-11-06T03:15:25.8378428Z ##[group]Run gradle assembleRelease --no-daemon --stacktrace
+2026-11-06T03:15:25.8378962Z [36;1mgradle assembleRelease --no-daemon --stacktrace[0m
+2026-11-06T03:15:25.8399669Z shell: /usr/bin/bash -e {0}
+2026-11-06T03:15:25.8399954Z env:
+2026-11-06T03:15:25.8400265Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-06T03:15:25.8400802Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-06T03:15:25.8401272Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-11-06T03:15:25.8401597Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-11-06T03:15:25.8401907Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-11-06T03:15:25.8402352Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-11-06T03:15:25.8402854Z   DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-11-06T03:15:25.8403189Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-11-06T03:15:25.8403455Z ##[endgroup]
+2026-11-06T03:15:26.4883931Z 
+2026-11-06T03:15:26.4887964Z Welcome to Gradle 8.5!
+2026-11-06T03:15:26.4888797Z 
+2026-11-06T03:15:26.4908268Z Here are the highlights of this release:
+2026-11-06T03:15:26.4916397Z  - Support for running on Java 21
+2026-11-06T03:15:26.4917997Z  - Faster first use with Kotlin DSL
+2026-11-06T03:15:26.4918827Z  - Improved error and warning messages
+2026-11-06T03:15:26.4919403Z 
+2026-11-06T03:15:26.4919930Z For more details see https://docs.gradle.org/8.5/release-notes.html
+2026-11-06T03:15:26.4920684Z 
+2026-11-06T03:15:26.5858412Z To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.5/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+2026-11-06T03:15:28.3857218Z Daemon will be stopped at the end of the build 
+2026-11-06T03:15:54.3855594Z Checking the license for package Android SDK Build-Tools 33.0.1 in /usr/local/lib/android/sdk/licenses
+2026-11-06T03:15:54.3857264Z License for package Android SDK Build-Tools 33.0.1 accepted.
+2026-11-06T03:15:54.3858521Z Preparing "Install Android SDK Build-Tools 33.0.1 v.33.0.1".
+2026-11-06T03:15:56.1852667Z "Install Android SDK Build-Tools 33.0.1 v.33.0.1" ready.
+2026-11-06T03:15:56.1854289Z Installing Android SDK Build-Tools 33.0.1 in /usr/local/lib/android/sdk/build-tools/33.0.1
+2026-11-06T03:15:56.1876534Z "Install Android SDK Build-Tools 33.0.1 v.33.0.1" complete.
+2026-11-06T03:15:56.3896999Z "Install Android SDK Build-Tools 33.0.1 v.33.0.1" finished.
+2026-11-06T03:15:56.6863335Z > Task :app:preBuild UP-TO-DATE
+2026-11-06T03:15:56.6874963Z > Task :app:preReleaseBuild UP-TO-DATE
+2026-11-06T03:15:56.9854739Z > Task :app:mergeReleaseJniLibFolders
+2026-11-06T03:16:01.4854117Z > Task :app:mergeReleaseNativeLibs NO-SOURCE
+2026-11-06T03:16:01.5886722Z > Task :app:stripReleaseDebugSymbols NO-SOURCE
+2026-11-06T03:16:01.5906099Z > Task :app:extractReleaseNativeSymbolTables NO-SOURCE
+2026-11-06T03:16:01.5946268Z > Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
+2026-11-06T03:16:02.2874147Z > Task :app:javaPreCompileRelease
+2026-11-06T03:16:02.2877989Z > Task :app:checkReleaseDuplicateClasses
+2026-11-06T03:16:02.3881309Z > Task :app:generateReleaseResValues
+2026-11-06T03:16:02.4856768Z > Task :app:checkReleaseAarMetadata
+2026-11-06T03:16:02.5857142Z > Task :app:mapReleaseSourceSetPaths
+2026-11-06T03:16:02.5863144Z > Task :app:generateReleaseResources
+2026-11-06T03:16:04.8856586Z > Task :app:packageReleaseResources
+2026-11-06T03:16:06.5873667Z > Task :app:createReleaseCompatibleScreenManifests
+2026-11-06T03:16:06.5883535Z > Task :app:extractDeepLinksRelease
+2026-11-06T03:16:06.6859590Z > Task :app:parseReleaseLocalResources
+2026-11-06T03:16:06.9853336Z > Task :app:mergeReleaseResources
+2026-11-06T03:16:06.9854422Z > Task :app:processReleaseMainManifest
+2026-11-06T03:16:07.2859347Z > Task :app:processReleaseManifest
+2026-11-06T03:16:07.2886352Z > Task :app:extractProguardFiles
+2026-11-06T03:16:07.3858299Z > Task :app:mergeReleaseArtProfile
+2026-11-06T03:16:07.3906201Z > Task :app:processReleaseJavaRes NO-SOURCE
+2026-11-06T03:16:07.6856980Z > Task :app:mergeReleaseShaders FROM-CACHE
+2026-11-06T03:16:07.6876501Z > Task :app:compileReleaseShaders NO-SOURCE
+2026-11-06T03:16:07.6906266Z > Task :app:generateReleaseAssets UP-TO-DATE
+2026-11-06T03:16:07.8866577Z > Task :app:mergeReleaseAssets FROM-CACHE
+2026-11-06T03:16:07.8890031Z > Task :app:compressReleaseAssets
+2026-11-06T03:16:07.8906488Z > Task :app:processApplicationManifestReleaseForBundle
+2026-11-06T03:16:08.0852814Z > Task :app:collectReleaseDependencies
+2026-11-06T03:16:08.1876460Z > Task :app:sdkReleaseDependencyData
+2026-11-06T03:16:08.1883841Z > Task :app:processReleaseManifestForPackage
+2026-11-06T03:16:08.3878310Z > Task :app:mergeReleaseJavaResource
+2026-11-06T03:16:08.4856248Z > Task :app:validateSigningRelease
+2026-11-06T03:16:08.4886040Z > Task :app:writeReleaseAppMetadata
+2026-11-06T03:16:08.4915969Z > Task :app:writeReleaseSigningConfigVersions
+2026-11-06T03:16:08.7852904Z > Task :app:bundleReleaseResources
+2026-11-06T03:16:09.2864337Z > Task :app:processReleaseResources
+2026-11-06T03:16:16.8852632Z > Task :app:compileReleaseJavaWithJavac
+2026-11-06T03:16:16.8853603Z > Task :app:mergeReleaseGeneratedProguardFiles
+2026-11-06T03:16:46.8861303Z > Task :app:minifyReleaseWithR8
+2026-11-06T03:17:02.9866404Z > Task :app:compileReleaseArtProfile
+2026-11-06T03:17:03.7852915Z > Task :app:shrinkReleaseRes
+2026-11-06T03:17:03.9852834Z > Task :app:optimizeReleaseResources
+2026-11-06T03:17:04.2863490Z > Task :app:packageRelease
+2026-11-06T03:17:04.2871392Z > Task :app:createReleaseApkListingFileRedirect
+2026-11-06T03:17:04.2872226Z > Task :app:assembleRelease
+2026-11-06T03:17:04.3699838Z 
+2026-11-06T03:17:04.3717579Z BUILD SUCCESSFUL in 1m 38s
+2026-11-06T03:17:04.3718968Z 36 actionable tasks: 34 executed, 2 from cache

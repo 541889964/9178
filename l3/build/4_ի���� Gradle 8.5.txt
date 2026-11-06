@@ -1,0 +1,42 @@
+﻿2026-11-06T03:15:22.4025845Z ##[group]Run gradle/actions/setup-gradle@v3
+2026-11-06T03:15:22.4026397Z with:
+2026-11-06T03:15:22.4026734Z   gradle-version: 8.5
+2026-11-06T03:15:22.4027225Z   cache-disabled: false
+2026-11-06T03:15:22.4027603Z   cache-read-only: false
+2026-11-06T03:15:22.4027998Z   cache-write-only: false
+2026-11-06T03:15:22.4028386Z   cache-overwrite-existing: false
+2026-11-06T03:15:22.4028839Z   gradle-home-cache-includes: caches
+notifications
+
+2026-11-06T03:15:22.4029328Z   gradle-home-cache-cleanup: false
+2026-11-06T03:15:22.4029738Z   add-job-summary: always
+2026-11-06T03:15:22.4030133Z   add-job-summary-as-pr-comment: never
+2026-11-06T03:15:22.4030556Z   dependency-graph: disabled
+2026-11-06T03:15:22.4030978Z   dependency-graph-continue-on-failure: true
+2026-11-06T03:15:22.4031428Z   build-scan-publish: false
+2026-11-06T03:15:22.4031825Z   validate-wrappers: false
+2026-11-06T03:15:22.4032206Z   generate-job-summary: true
+2026-11-06T03:15:22.4032612Z   gradle-home-cache-strict-match: false
+2026-11-06T03:15:22.4033034Z   workflow-job-context: null
+2026-11-06T03:15:22.4036111Z   github-token: ***
+2026-11-06T03:15:22.4036493Z env:
+2026-11-06T03:15:22.4036938Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-06T03:15:22.4037603Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-06T03:15:22.4038133Z ##[endgroup]
+2026-11-06T03:15:22.6168481Z (node:2316) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-06T03:15:22.6170175Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-06T03:15:22.8012552Z Merged default JDK locations into /home/runner/.m2/toolchains.xml
+2026-11-06T03:15:22.8015698Z ##[group]Restore Gradle state from cache
+2026-11-06T03:15:22.8859498Z ##[warning]Failed to restore gradle-home-v1|Linux|build[620c74083efa5b88ef904c2356f72d31]-8a5b3196fda096b405e18389dadc28743237dc92: Error: Cache service responded with 400
+2026-11-06T03:15:22.8933177Z Gradle User Home cache not found. Will initialize empty.
+2026-11-06T03:15:22.8934552Z ##[endgroup]
+2026-11-06T03:15:22.9433994Z ##[group]Provision Gradle 8.5
+2026-11-06T03:15:22.9900730Z ##[warning]Restore Gradle distribution 8.5 failed: Error: Cache service responded with 400
+2026-11-06T03:15:22.9903597Z Gradle distribution 8.5 not found in cache. Will download.
+2026-11-06T03:15:23.7070024Z Downloaded https://services.gradle.org/distributions/gradle-8.5-bin.zip to /home/runner/gradle-installations/downloads/gradle-8.5-bin.zip (size 132519731)
+2026-11-06T03:15:23.7256359Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/9178/9178 --files-from manifest.txt --use-compress-program zstdmt
+2026-11-06T03:15:23.9642923Z ##[warning]Save Gradle distribution 8.5 failed: Error: <h2>Our services aren't available right now</h2><p>We're working to restore all services as soon as possible. Please check back soon.</p>0S0btagAAAADaTTyFJE9+Ta2GapM35uqfUEhMMzBFREdFMDQxNABFZGdl
+2026-11-06T03:15:23.9666078Z [command]/usr/bin/unzip -o -q /home/runner/gradle-installations/downloads/gradle-8.5-bin.zip
+2026-11-06T03:15:24.9260618Z Extracted Gradle 8.5 to /home/runner/gradle-installations/installs/gradle-8.5
+2026-11-06T03:15:24.9262396Z Provisioned Gradle executable /home/runner/gradle-installations/installs/gradle-8.5/bin/gradle
+2026-11-06T03:15:24.9264096Z ##[endgroup]

@@ -1,0 +1,33 @@
+﻿2026-11-06T03:17:04.7150254Z ##[group]Run actions/upload-artifact@v4
+2026-11-06T03:17:04.7150551Z with:
+2026-11-06T03:17:04.7150745Z   name: DyTool-APK
+2026-11-06T03:17:04.7150994Z   path: android/app/build/outputs/apk/release/*.apk
+2026-11-06T03:17:04.7151308Z   retention-days: 30
+2026-11-06T03:17:04.7151525Z   if-no-files-found: warn
+2026-11-06T03:17:04.7151752Z   compression-level: 6
+2026-11-06T03:17:04.7151958Z   overwrite: false
+2026-11-06T03:17:04.7152166Z   include-hidden-files: false
+2026-11-06T03:17:04.7152392Z env:
+2026-11-06T03:17:04.7152680Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-06T03:17:04.7153168Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-06T03:17:04.7153582Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-11-06T03:17:04.7153887Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-11-06T03:17:04.7154179Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-11-06T03:17:04.7154610Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-11-06T03:17:04.7155132Z   DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-11-06T03:17:04.7155963Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-11-06T03:17:04.7156243Z ##[endgroup]
+2026-11-06T03:17:04.8963672Z (node:2784) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-06T03:17:04.8964440Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-06T03:17:04.9049678Z With the provided path, there will be 1 file uploaded
+2026-11-06T03:17:04.9050884Z Artifact name is valid!
+2026-11-06T03:17:04.9051306Z Root directory input is valid!
+2026-11-06T03:17:05.1325809Z Beginning upload of artifact content to blob storage
+2026-11-06T03:17:05.2003325Z (node:2784) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-06T03:17:05.2852707Z Uploaded bytes 1111371
+2026-11-06T03:17:05.3045236Z Finished uploading artifact content to blob storage!
+2026-11-06T03:17:05.3046704Z SHA256 digest of uploaded artifact zip is ec95bce743f2ef3f161909c1f7c31da8e204a0cbc01ec4b6836a77fc1df521ba
+2026-11-06T03:17:05.3048824Z Finalizing artifact upload
+2026-11-06T03:17:05.6827195Z Artifact DyTool-APK.zip successfully finalized. Artifact ID 13475205080
+2026-11-06T03:17:05.6828465Z Artifact DyTool-APK has been successfully uploaded! Final size is 1111371 bytes. Artifact ID is 13475205080
+2026-11-06T03:17:05.6834302Z Artifact download URL: https://github.com/541889964/9178/actions/runs/42155398857/artifacts/13475205080

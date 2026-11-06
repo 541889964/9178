@@ -1,0 +1,16 @@
+﻿2026-11-06T03:17:04.7000203Z ##[group]Run ls -lh app/build/outputs/apk/release/
+2026-11-06T03:17:04.7000635Z [36;1mls -lh app/build/outputs/apk/release/[0m
+2026-11-06T03:17:04.7021416Z shell: /usr/bin/bash -e {0}
+2026-11-06T03:17:04.7021676Z env:
+2026-11-06T03:17:04.7021976Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-06T03:17:04.7022483Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-06T03:17:04.7022924Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-11-06T03:17:04.7023238Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-11-06T03:17:04.7023539Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-11-06T03:17:04.7023975Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-11-06T03:17:04.7024478Z   DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-11-06T03:17:04.7024823Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-11-06T03:17:04.7025091Z ##[endgroup]
+2026-11-06T03:17:04.7085814Z total 1.6M
+2026-11-06T03:17:04.7086419Z -rw-r--r-- 1 runner runner 1.6M Nov  6 03:17 app-release.apk
+2026-11-06T03:17:04.7087056Z -rw-r--r-- 1 runner runner  376 Nov  6 03:17 output-metadata.json

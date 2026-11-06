@@ -1,0 +1,21 @@
+﻿2026-11-06T03:15:24.9472348Z ##[group]Run keytool -genkeypair -v \
+2026-11-06T03:15:24.9472784Z [36;1mkeytool -genkeypair -v \[0m
+2026-11-06T03:15:24.9473122Z [36;1m  -keystore app/release.keystore \[0m
+2026-11-06T03:15:24.9473443Z [36;1m  -alias androiddebugkey \[0m
+2026-11-06T03:15:24.9473782Z [36;1m  -keyalg RSA -keysize 2048 -validity 10950 \[0m
+2026-11-06T03:15:24.9474158Z [36;1m  -storepass android -keypass android \[0m
+2026-11-06T03:15:24.9474547Z [36;1m  -dname "CN=SuperRouter, OU=Dev, O=DyTool, L=CN, ST=CN, C=CN"[0m
+2026-11-06T03:15:24.9498102Z shell: /usr/bin/bash -e {0}
+2026-11-06T03:15:24.9498392Z env:
+2026-11-06T03:15:24.9498732Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-06T03:15:24.9499283Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-06T03:15:24.9499736Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-11-06T03:15:24.9500076Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-11-06T03:15:24.9500372Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-11-06T03:15:24.9500851Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-11-06T03:15:24.9501351Z   DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-11-06T03:15:24.9501689Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-11-06T03:15:24.9501958Z ##[endgroup]
+2026-11-06T03:15:25.6071989Z Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) with a validity of 10,950 days
+2026-11-06T03:15:25.6078748Z 	for: CN=SuperRouter, OU=Dev, O=DyTool, L=CN, ST=CN, C=CN
+2026-11-06T03:15:25.7498571Z [Storing app/release.keystore]

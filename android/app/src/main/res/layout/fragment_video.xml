@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:fillViewport="true"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="16dp"
+        android:paddingTop="18dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="28dp">
+
+        <!-- 标题区 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="视频工具"
+            android:textColor="@color/txt"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:letterSpacing="-0.01" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="16dp"
+            android:text="粘贴分享链接，一键提取视频 · 音频 · 封面"
+            android:textColor="@color/sub"
+            android:textSize="13sp" />
+
+        <!-- 输入卡片 -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.DyTool.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <EditText
+                    android:id="@+id/etInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_input"
+                    android:gravity="top|start"
+                    android:hint="@string/hint_input"
+                    android:inputType="textMultiLine"
+                    android:maxLines="5"
+                    android:minHeight="92dp"
+                    android:padding="13dp"
+                    android:textColor="@color/txt"
+                    android:textColorHint="@color/hint"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPaste"
+                        style="@style/Widget.DyTool.Button.Tonal"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:text="@string/btn_paste"
+                        app:icon="@drawable/ic_paste"
+                        app:iconGravity="textStart"
+                        app:iconPadding="6dp"
+                        app:iconSize="18dp" />
+
+                    <Space
+                        android:layout_width="10dp"
+                        android:layout_height="1dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnParse"
+                        style="@style/Widget.DyTool.Button.Primary"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1.5"
+                        android:text="@string/btn_parse"
+                        app:icon="@drawable/ic_rocket"
+                        app:iconGravity="textStart"
+                        app:iconPadding="6dp"
+                        app:iconSize="18dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/boxStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <ProgressBar
+                        android:id="@+id/progressSmall"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:indeterminateTint="@color/pri" />
+
+                    <TextView
+                        android:id="@+id/tvStatus"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="9dp"
+                        android:layout_weight="1"
+                        android:textColor="@color/sub"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 结果卡片 -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardResult"
+            style="@style/Widget.DyTool.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <!-- 视频预览区 -->
+                <FrameLayout
+                    android:id="@+id/previewBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="230dp"
+                    android:background="#000000">
+
+                    <VideoView
+                        android:id="@+id/videoView"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/ivCover"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@string/title_result"
+                        android:scaleType="centerCrop" />
+
+                    <LinearLayout
+                        android:id="@+id/playMask"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_badge_ok"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingLeft="16dp"
+                        android:paddingTop="10dp"
+                        android:paddingRight="18dp"
+                        android:paddingBottom="10dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:contentDescription="play"
+                            android:src="@drawable/ic_play" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="7dp"
+                            android:text="@string/btn_preview"
+                            android:textColor="#04240F"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|start"
+                        android:layout_margin="10dp"
+                        android:background="@drawable/bg_badge_ok"
+                        android:paddingLeft="10dp"
+                        android:paddingTop="4dp"
+                        android:paddingRight="10dp"
+                        android:paddingBottom="4dp"
+                        android:text="无水印"
+                        android:textColor="#04240F"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <ImageButton
+                        android:id="@+id/btnClosePreview"
+                        android:layout_width="34dp"
+                        android:layout_height="34dp"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="10dp"
+                        android:background="@drawable/bg_badge_warn"
+                        android:contentDescription="close"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_close"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:ellipsize="end"
+                    android:maxLines="3"
+                    android:textColor="@color/txt"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvTags"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="7dp"
+                    android:textColor="#FF8FA4"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvMeta"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="9dp"
+                    android:lineSpacingExtra="4dp"
+                    android:textColor="@color/sub"
+                    android:textSize="12.5sp" />
+
+                <!-- 三个操作按钮 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnVideo"
+                        style="@style/Widget.DyTool.Button.Green"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_weight="1"
+                        android:paddingLeft="0dp"
+                        android:paddingRight="0dp"
+                        android:text="视频"
+                        android:textSize="13sp"
+                        app:icon="@drawable/ic_download"
+                        app:iconGravity="textStart"
+                        app:iconPadding="4dp"
+                        app:iconSize="16dp" />
+
+                    <Space
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAudio"
+                        style="@style/Widget.DyTool.Button.Blue"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_weight="1"
+                        android:paddingLeft="0dp"
+                        android:paddingRight="0dp"
+                        android:text="音频"
+                        android:textSize="13sp"
+                        app:icon="@drawable/ic_music"
+                        app:iconGravity="textStart"
+                        app:iconPadding="4dp"
+                        app:iconSize="16dp" />
+
+                    <Space
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCover"
+                        style="@style/Widget.DyTool.Button.Orange"
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_weight="1"
+                        android:paddingLeft="0dp"
+                        android:paddingRight="0dp"
+                        android:text="封面"
+                        android:textSize="13sp"
+                        app:icon="@drawable/ic_image"
+                        app:iconGravity="textStart"
+                        app:iconPadding="4dp"
+                        app:iconSize="16dp" />
+                </LinearLayout>
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="12dp"
+                    android:progressTint="@color/pri"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

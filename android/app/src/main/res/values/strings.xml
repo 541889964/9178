@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">抖音工具箱</string>
+    <string name="tab_video">视频工具</string>
+    <string name="tab_music">音乐搜索</string>
+
     <string name="hint_input">粘贴抖音分享链接或整段分享文案</string>
     <string name="btn_parse">开始解析</string>
     <string name="btn_paste">粘贴</string>
@@ -8,6 +11,14 @@
     <string name="btn_video">下载视频</string>
     <string name="btn_audio">提取音频</string>
     <string name="btn_cover">下载封面</string>
+    <string name="btn_preview">预览播放</string>
+
+    <string name="hint_music">搜索歌曲、歌手</string>
+    <string name="btn_search">搜索</string>
+    <string name="music_empty">输入关键词，搜索并免费下载音乐</string>
+    <string name="music_loading">搜索中…</string>
+    <string name="music_no_result">没有找到相关歌曲</string>
+
     <string name="title_result">解析结果</string>
     <string name="parsing">正在解析，请稍候…</string>
     <string name="extracting">正在提取音频…</string>
