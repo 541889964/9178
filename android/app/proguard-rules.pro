@@ -1,0 +1,5 @@
+-keep class com.superrouter.dytool.** { *; }
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-keepattributes Signature
+-keepattributes *Annotation*

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">抖音工具箱</string>
+    <string name="hint_input">粘贴抖音分享链接或整段分享文案</string>
+    <string name="btn_parse">开始解析</string>
+    <string name="btn_paste">粘贴</string>
+    <string name="btn_clear">清空</string>
+    <string name="btn_video">下载视频</string>
+    <string name="btn_audio">提取音频</string>
+    <string name="btn_cover">下载封面</string>
+    <string name="title_result">解析结果</string>
+    <string name="parsing">正在解析，请稍候…</string>
+    <string name="extracting">正在提取音频…</string>
+    <string name="downloading">正在下载…</string>
+    <string name="notif_channel">后台任务</string>
+    <string name="notif_title">抖音工具箱运行中</string>
+    <string name="notif_text">保持后台下载不中断</string>
+</resources>

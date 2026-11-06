@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>抖音解析下载</title>
+<style>
+  :root{
+    --bg:#0b0d12; --card:#151922; --card2:#1b202b; --line:#252b38;
+    --txt:#e8ecf4; --sub:#8b95a8; --pri:#ff2c55; --pri2:#ff6a3d;
+    --ok:#20c07a; --err:#ff4d5e;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;min-height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg); color:var(--txt);
+    background-image:
+      radial-gradient(900px 420px at 50% -8%, rgba(255,44,85,.20), transparent 62%),
+      radial-gradient(700px 380px at 95% 110%, rgba(255,106,61,.12), transparent 60%);
+    background-attachment:fixed;
+    padding:22px 16px 44px; display:flex; justify-content:center;
+  }
+  .wrap{width:100%;max-width:520px}
+
+  /* 头部 */
+  .head{text-align:center;margin-bottom:22px}
+  .logo{
+    width:56px;height:56px;margin:0 auto 12px;border-radius:16px;
+    background:linear-gradient(135deg,var(--pri),var(--pri2));
+    display:flex;align-items:center;justify-content:center;
+    font-size:28px;box-shadow:0 10px 26px rgba(255,44,85,.32);
+  }
+  h1{font-size:22px;margin:0 0 6px;letter-spacing:.5px}
+  .head p{margin:0;color:var(--sub);font-size:13px;line-height:1.6}
+
+  /* 卡片 */
+  .card{
+    background:linear-gradient(180deg,var(--card),var(--card2));
+    border:1px solid var(--line); border-radius:18px;
+    padding:16px; box-shadow:0 12px 34px rgba(0,0,0,.34);
+  }
+  .card + .card{margin-top:16px}
+
+  /* 输入 */
+  textarea{
+    width:100%;min-height:96px;resize:vertical;
+    background:#0f131b; color:var(--txt);
+    border:1px solid var(--line); border-radius:13px;
+    padding:13px 14px; font-size:14px; line-height:1.55;
+    font-family:inherit; outline:none;
+    transition:border-color .18s, box-shadow .18s;
+  }
+  textarea:focus{border-color:var(--pri); box-shadow:0 0 0 3px rgba(255,44,85,.14)}
+  textarea::placeholder{color:#5c6478}
+
+  .row{display:flex;gap:10px;margin-top:12px}
+  button{font-family:inherit;cursor:pointer;border:none;outline:none}
+  .btn{
+    flex:1;height:48px;border-radius:13px;font-size:15px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;gap:7px;
+    transition:transform .12s, opacity .18s, box-shadow .18s;
+  }
+  .btn:active{transform:scale(.97)}
+  .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+  .btn-pri{
+    background:linear-gradient(135deg,var(--pri),var(--pri2));
+    color:#fff; box-shadow:0 8px 22px rgba(255,44,85,.30);
+  }
+  .btn-ghost{background:#202634;color:var(--sub);flex:0 0 96px;border:1px solid var(--line)}
+
+  /* 状态 */
+  .status{display:none;align-items:center;gap:9px;margin-top:14px;font-size:13.5px;color:var(--sub)}
+  .status.show{display:flex}
+  .status.err{color:var(--err)}
+  .status.ok{color:var(--ok)}
+  .spin{
+    width:15px;height:15px;border-radius:50%;flex:0 0 15px;
+    border:2px solid rgba(255,255,255,.16); border-top-color:var(--pri);
+    animation:sp .7s linear infinite;
+  }
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* 结果 */
+  .result{display:none;margin-top:16px}
+  .result.show{display:block;animation:fade .28s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .video-box{
+    position:relative;width:100%;border-radius:14px;overflow:hidden;
+    background:#000;border:1px solid var(--line);
+  }
+  .video-box video{display:block;width:100%;max-height:62vh;background:#000}
+  .badge{
+    position:absolute;top:10px;left:10px;z-index:2;
+    background:rgba(32,192,122,.92); color:#04240f;
+    font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;
+    letter-spacing:.3px;
+  }
+
+  .meta{margin-top:14px}
+  .title{font-size:15px;font-weight:600;line-height:1.5;margin:0 0 8px;word-break:break-word}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .tag{font-size:11.5px;color:#ff8fa4;background:rgba(255,44,85,.13);border:1px solid rgba(255,44,85,.28);padding:3px 9px;border-radius:20px}
+  .kv{display:flex;flex-wrap:wrap;gap:8px;color:var(--sub);font-size:12.5px}
+  .kv span{background:#0f131b;border:1px solid var(--line);padding:4px 10px;border-radius:8px}
+
+  .actions{display:flex;gap:10px;margin-top:14px}
+  .dl{
+    flex:1;height:50px;border-radius:13px;font-size:15px;font-weight:700;color:#fff;
+    background:linear-gradient(135deg,#20c07a,#12a463);
+    box-shadow:0 8px 22px rgba(32,192,122,.28);
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    text-decoration:none;transition:transform .12s,opacity .18s;
+  }
+  .dl:active{transform:scale(.97)}
+
+  .foot{text-align:center;margin-top:26px;color:#525b6e;font-size:11.5px;line-height:1.8}
+  .foot b{color:#6d7789;font-weight:600}
+
+  /* toast */
+  .toast{
+    position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);
+    background:#232a38;color:var(--txt);font-size:13.5px;
+    padding:11px 18px;border-radius:12px;border:1px solid var(--line);
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+    opacity:0;pointer-events:none;transition:.26s;z-index:99;max-width:86vw;text-align:center;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <div class="logo">🎬</div>
+    <h1>抖音解析下载</h1>
+    <p>粘贴分享链接 · 秒出无水印原画质视频</p>
+  </div>
+
+  <div class="card">
+    <textarea id="input" placeholder="粘贴抖音分享内容，例如：&#10;8.88 X@m.Dh :4pm 复制打开抖音，看看... https://v.douyin.com/xxxxxx/"></textarea>
+    <div class="row">
+      <button class="btn btn-ghost" id="pasteBtn" type="button">📋 粘贴</button>
+      <button class="btn btn-pri" id="parseBtn" type="button">🚀 开始解析</button>
+    </div>
+    <div class="status" id="status"><span class="spin"></span><span id="statusText">解析中…</span></div>
+  </div>
+
+  <div class="card result" id="result">
+    <div class="video-box">
+      <div class="badge" id="badge">无水印</div>
+      <video id="player" controls playsinline preload="metadata" poster=""></video>
+    </div>
+    <div class="meta">
+      <div class="title" id="vTitle">-</div>
+      <div class="tags" id="vTags"></div>
+      <div class="kv" id="vKv"></div>
+    </div>
+    <div class="actions">
+      <a class="dl" id="dlBtn" href="#">⬇️ 下载视频</a>
+    </div>
+  </div>
+
+  <div class="foot">
+    <b>SuperRouter</b> · 本地解析服务<br/>
+    解析与下载均由后端代理，浏览器无需登录
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const input = $('input'), parseBtn = $('parseBtn'), pasteBtn = $('pasteBtn');
+  const statusEl = $('status'), statusText = $('statusText');
+  const result = $('result'), player = $('player');
+  const vTitle = $('vTitle'), vTags = $('vTags'), vKv = $('vKv'), dlBtn = $('dlBtn');
+  const toastEl = $('toast');
+
+  let toastTimer = null;
+  function toast(msg, ms=2200){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>toastEl.classList.remove('show'), ms);
+  }
+
+  function setStatus(type, msg){
+    statusEl.className = 'status show' + (type ? ' ' + type : '');
+    statusEl.querySelector('.spin').style.display = type === 'err' || type === 'ok' ? 'none' : 'block';
+    statusText.textContent = msg;
+  }
+  function hideStatus(){ statusEl.className = 'status'; }
+
+  function fmtSize(b){
+    if(!b || isNaN(b)) return null;
+    const u = ['B','KB','MB','GB']; let i = 0, n = Number(b);
+    while(n >= 1024 && i < u.length-1){ n /= 1024; i++; }
+    return n.toFixed(n >= 100 ? 0 : 1) + ' ' + u[i];
+  }
+
+  pasteBtn.addEventListener('click', async ()=>{
+    try{
+      const t = await navigator.clipboard.readText();
+      if(t){ input.value = t.trim(); toast('已粘贴'); }
+      else toast('剪贴板是空的');
+    }catch(e){
+      toast('请手动长按输入框粘贴');
+      input.focus();
+    }
+  });
+
+  async function doParse(){
+    const raw = input.value.trim();
+    if(!raw){ toast('请先粘贴抖音分享链接'); input.focus(); return; }
+
+    parseBtn.disabled = true;
+    result.classList.remove('show');
+    setStatus('', '正在解析，请稍候…');
+
+    try{
+      const res = await fetch('/api/parse', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({url: raw})
+      });
+      const j = await res.json();
+      if(!res.ok || !j.ok){
+        setStatus('err', j.error || ('解析失败 HTTP ' + res.status));
+        toast(j.error || '解析失败');
+        return;
+      }
+      render(j.data, j.cached);
+      setStatus('ok', j.cached ? '解析成功（命中缓存）' : '解析成功');
+    }catch(e){
+      setStatus('err', '网络错误：' + e.message);
+      toast('网络错误');
+    }finally{
+      parseBtn.disabled = false;
+    }
+  }
+
+  function render(d, cached){
+    vTitle.textContent = d.title || '抖音视频';
+
+    vTags.innerHTML = '';
+    (d.tags || []).slice(0, 6).forEach(t=>{
+      const s = document.createElement('span');
+      s.className = 'tag'; s.textContent = '#' + t; vTags.appendChild(s);
+    });
+
+    vKv.innerHTML = '';
+    const kv = [];
+    if(d.author) kv.push('👤 ' + d.author);
+    if(d.width && d.height) kv.push('📐 ' + d.width + '×' + d.height);
+    const sz = fmtSize(d.size_bytes);
+    if(sz) kv.push('💾 ' + sz);
+    if(d.format) kv.push('🎞 ' + String(d.format).toUpperCase());
+    kv.forEach(t=>{
+      const s = document.createElement('span'); s.textContent = t; vKv.appendChild(s);
+    });
+
+    $('badge').textContent = d.watermark ? '含水印' : '无水印';
+    $('badge').style.background = d.watermark ? 'rgba(255,77,94,.92)' : 'rgba(32,192,122,.92)';
+
+    const poster = d.cover ? ('/api/cover?u=' + encodeURIComponent(d.cover)) : '';
+    player.poster = poster;
+
+    const dlUrl = '/api/download/' + encodeURIComponent(d.aweme_id);
+    player.src = dlUrl;
+    player.load();
+
+    dlBtn.href = dlUrl;
+    dlBtn.setAttribute('download', (d.aweme_id || 'video') + '.mp4');
+
+    result.classList.add('show');
+    result.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+
+  parseBtn.addEventListener('click', doParse);
+  input.addEventListener('keydown', e=>{
+    if((e.ctrlKey || e.metaKey) && e.key === 'Enter') doParse();
+  });
+
+  // 健康检查，确认后端在线
+  fetch('/api/health').then(r=>r.json()).then(j=>{
+    if(j && j.ok) console.log('[SuperRouter] backend ok');
+  }).catch(()=>{});
+})();
+</script>
+</body>
+</html>
