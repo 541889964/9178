@@ -199,13 +199,14 @@ public class MusicFragment extends Fragment {
                         .trim();
                 if (title.isEmpty()) throw new Exception("无法识别视频音乐");
 
-                ui.post(() -> showStatus("识别到：" + title + "，正在搜索…"));
+                final String keyword = title;
+                ui.post(() -> showStatus("识别到：" + keyword + "，正在搜索…"));
 
-                List<MusicItem> list = MusicApi.search(title, 20);
+                List<MusicItem> list = MusicApi.search(keyword, 20);
                 ui.post(() -> {
                     busy = false;
                     btnSearch.setEnabled(true);
-                    etSearch.setText(title);
+                    etSearch.setText(keyword);
                     if (list.isEmpty()) {
                         boxStatus.setVisibility(View.GONE);
                         showEmpty("未找到匹配音乐");
