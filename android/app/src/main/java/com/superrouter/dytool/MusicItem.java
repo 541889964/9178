@@ -9,6 +9,9 @@ public class MusicItem {
     public String cover = "";
     public long durationMs;
     public String source = "netease";
+    public int fee = 0;
+    public int maxBr = 0;
+    public boolean playable = true;
 
     public String subtitle() {
         StringBuilder sb = new StringBuilder();

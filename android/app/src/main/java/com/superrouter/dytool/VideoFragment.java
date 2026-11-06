@@ -402,26 +402,15 @@ public class VideoFragment extends Fragment {
 
     private void loadCover(String url) {
         if (TextUtils.isEmpty(url) || ivCover == null) return;
-        pool.execute(() -> {
-            try {
-                Request req = new Request.Builder()
-                        .url(url)
-                        .header("User-Agent", App.UA)
-                        .header("Referer", "https://www.douyin.com/")
-                        .build();
-                try (Response r = http.newCall(req).execute()) {
-                    ResponseBody b = r.body();
-                    if (b == null) return;
-                    InputStream in = b.byteStream();
-                    Bitmap bmp = BitmapFactory.decodeStream(in);
-                    in.close();
-                    if (bmp != null) ui.post(() -> {
-                        if (ivCover != null) ivCover.setImageBitmap(bmp);
-                    });
-                }
-            } catch (Exception ignored) {
-            }
-        });
+        com.bumptech.glide.Glide.with(VideoFragment.this)
+                .load(url)
+                .apply(new com.bumptech.glide.request.RequestOptions()
+                        .placeholder(R.drawable.bg_cover_round)
+                        .error(R.drawable.bg_cover_round)
+                        .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                        .centerCrop()
+                        .timeout(10000))
+                .into(ivCover);
     }
 
     // ---------------- 状态 ----------------

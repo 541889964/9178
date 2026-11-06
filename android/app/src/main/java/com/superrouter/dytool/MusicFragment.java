@@ -1,6 +1,7 @@
 package com.superrouter.dytool;
 
 import android.app.Activity;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -24,10 +25,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.button.MaterialButton;
 
 import java.io.File;
@@ -39,14 +43,14 @@ import java.util.concurrent.Executors;
 public class MusicFragment extends Fragment {
 
     private EditText etSearch;
-    private MaterialButton btnSearch;
+    private MaterialButton btnSearch, btnPaste;
     private LinearLayout boxStatus, boxEmpty;
     private ProgressBar pbMusic;
     private TextView tvStatus, tvEmpty;
     private RecyclerView rvMusic;
 
     private final Handler ui = new Handler(Looper.getMainLooper());
-    private final ExecutorService pool = Executors.newFixedThreadPool(2);
+    private final ExecutorService pool = Executors.newFixedThreadPool(3);
     private final List<MusicItem> data = new ArrayList<>();
     private MusicAdapter adapter;
 
@@ -67,6 +71,7 @@ public class MusicFragment extends Fragment {
 
         etSearch = v.findViewById(R.id.etSearch);
         btnSearch = v.findViewById(R.id.btnSearch);
+        btnPaste = v.findViewById(R.id.btnMusicPaste);
         boxStatus = v.findViewById(R.id.boxMusicStatus);
         boxEmpty = v.findViewById(R.id.boxEmpty);
         pbMusic = v.findViewById(R.id.pbMusic);
@@ -75,10 +80,15 @@ public class MusicFragment extends Fragment {
         rvMusic = v.findViewById(R.id.rvMusic);
 
         adapter = new MusicAdapter();
-        rvMusic.setLayoutManager(new LinearLayoutManager(getContext()));
+        LinearLayoutManager lm = new LinearLayoutManager(getContext());
+        rvMusic.setLayoutManager(lm);
+        rvMusic.setItemAnimator(new DefaultItemAnimator());
         rvMusic.setAdapter(adapter);
+        rvMusic.setHasFixedSize(false);
+        rvMusic.setItemViewCacheSize(12);
 
         btnSearch.setOnClickListener(x -> doSearch());
+        if (btnPaste != null) btnPaste.setOnClickListener(x -> doPaste());
         etSearch.setOnEditorActionListener((tv, actionId, ev) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 doSearch();
@@ -88,14 +98,43 @@ public class MusicFragment extends Fragment {
         });
     }
 
+    private void doPaste() {
+        try {
+            Activity a = getActivity();
+            if (a == null) return;
+            ClipboardManager cm = (ClipboardManager) a.getSystemService(Context.CLIPBOARD_SERVICE);
+            if (cm == null || !cm.hasPrimaryClip() || cm.getPrimaryClip() == null) {
+                toast("剪贴板是空的");
+                return;
+            }
+            CharSequence cs = cm.getPrimaryClip().getItemAt(0).coerceToText(a);
+            if (cs == null || cs.length() == 0) {
+                toast("剪贴板是空的");
+                return;
+            }
+            etSearch.setText(cs.toString());
+            etSearch.setSelection(etSearch.getText().length());
+            toast("已粘贴，点搜索识曲");
+        } catch (Exception e) {
+            toast("读取剪贴板失败");
+        }
+    }
+
     private void doSearch() {
         if (busy) {
             toast("正在搜索中…");
             return;
         }
-        final String kw = etSearch.getText().toString().trim();
-        if (kw.isEmpty()) {
-            toast("请输入歌曲或歌手名");
+        String raw = etSearch.getText().toString().trim();
+        if (raw.isEmpty()) {
+            toast("请输入歌曲、歌手，或粘贴抖音链接");
+            return;
+        }
+
+        // 抖音链接识曲
+        String link = DyParser.extractUrl(raw);
+        if (link != null && DyParser.isDouyin(link)) {
+            doRecognize(link);
             return;
         }
 
@@ -107,6 +146,7 @@ public class MusicFragment extends Fragment {
         boxEmpty.setVisibility(View.GONE);
         rvMusic.setVisibility(View.GONE);
 
+        final String kw = raw;
         pool.execute(() -> {
             try {
                 List<MusicItem> list = MusicApi.search(kw, 30);
@@ -137,6 +177,59 @@ public class MusicFragment extends Fragment {
         });
     }
 
+    /** 抖音链接识曲：解析视频，取其标题/音乐名去搜索 */
+    private void doRecognize(String link) {
+        hideKeyboard();
+        stopPlay();
+        busy = true;
+        btnSearch.setEnabled(false);
+        showStatus("正在识别视频音乐…");
+        boxEmpty.setVisibility(View.GONE);
+        rvMusic.setVisibility(View.GONE);
+
+        pool.execute(() -> {
+            try {
+                DyItem item = new DyParser().parse(link);
+                // 从标题提取音乐名：去掉 #话题 @提及
+                String title = item.title == null ? "" : item.title;
+                title = title.replaceAll("#[^\s#@]+", " ")
+                        .replaceAll("@[^\s#@]+", " ")
+                        .replaceAll("[《》\[\]【】]", " ")
+                        .replaceAll("\s+", " ")
+                        .trim();
+                if (title.isEmpty()) throw new Exception("无法识别视频音乐");
+
+                ui.post(() -> showStatus("识别到：" + title + "，正在搜索…"));
+
+                List<MusicItem> list = MusicApi.search(title, 20);
+                ui.post(() -> {
+                    busy = false;
+                    btnSearch.setEnabled(true);
+                    etSearch.setText(title);
+                    if (list.isEmpty()) {
+                        boxStatus.setVisibility(View.GONE);
+                        showEmpty("未找到匹配音乐");
+                        return;
+                    }
+                    data.clear();
+                    data.addAll(list);
+                    adapter.notifyDataSetChanged();
+                    boxStatus.setVisibility(View.GONE);
+                    rvMusic.setVisibility(View.VISIBLE);
+                    rvMusic.scrollToPosition(0);
+                });
+            } catch (Exception e) {
+                final String msg = e.getMessage() == null ? e.toString() : e.getMessage();
+                ui.post(() -> {
+                    busy = false;
+                    btnSearch.setEnabled(true);
+                    showStatusErr("识曲失败：" + msg);
+                    showEmpty("识曲失败，请重试");
+                });
+            }
+        });
+    }
+
     // ---------------- 试听 ----------------
     private void togglePlay(int pos) {
         if (pos < 0 || pos >= data.size()) return;
@@ -159,13 +252,26 @@ public class MusicFragment extends Fragment {
 
         pool.execute(() -> {
             try {
-                String url = MusicApi.resolveAudioUrl(m.id);
-                if (url == null) throw new Exception("该歌曲暂无免费音源");
+                List<String> urls = MusicApi.resolveAudioUrls(m.id);
+                if (urls.isEmpty()) throw new Exception("该歌曲暂无免费音源");
+
+                // 并发探测选最快可用的
+                String best = null;
+                Exception lastE = null;
+                for (String u : urls) {
+                    try {
+                        String probe = probePlayable(u);
+                        if (probe != null) { best = probe; break; }
+                    } catch (Exception e) { lastE = e; }
+                }
+                if (best == null) throw new Exception("该歌曲暂无法播放");
+
+                final String playUrl = best;
                 ui.post(() -> {
                     try {
                         player = new MediaPlayer();
                         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                        player.setDataSource(url);
+                        player.setDataSource(playUrl);
                         player.setOnPreparedListener(mp -> {
                             mp.start();
                             playingPos = pos;
@@ -174,7 +280,7 @@ public class MusicFragment extends Fragment {
                         });
                         player.setOnCompletionListener(mp -> stopPlay());
                         player.setOnErrorListener((mp, w, e) -> {
-                            toast("播放失败，该歌曲可能受限");
+                            toast("播放失败");
                             stopPlay();
                             return true;
                         });
@@ -192,6 +298,30 @@ public class MusicFragment extends Fragment {
                 });
             }
         });
+    }
+
+    /** 探测链接是否真能播放（拉取头部字节） */
+    private String probePlayable(String url) {
+        try {
+            okhttp3.Request req = new okhttp3.Request.Builder()
+                    .url(url)
+                    .header("User-Agent", App.UA)
+                    .header("Referer", "https://music.163.com/")
+                    .header("Range", "bytes=0-1023")
+                    .build();
+            try (okhttp3.Response r = App.http().newCall(req).execute()) {
+                if (!r.isSuccessful() && r.code() != 206) return null;
+                String ct = r.header("Content-Type", "");
+                if (ct != null && (ct.contains("text/") || ct.contains("json"))) return null;
+                okhttp3.ResponseBody b = r.body();
+                if (b == null) return null;
+                byte[] head = b.bytes();
+                if (head == null || head.length < 100) return null;
+                return url;
+            }
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private void stopPlay() {
@@ -220,15 +350,12 @@ public class MusicFragment extends Fragment {
 
         pool.execute(() -> {
             try {
-                String url = MusicApi.resolveAudioUrl(m.id);
-                if (url == null) throw new Exception("该歌曲暂无免费音源");
+                List<String> urls = MusicApi.resolveAudioUrls(m.id);
+                if (urls.isEmpty()) throw new Exception("该歌曲暂无免费音源");
 
                 ui.post(() -> showStatus("正在下载 " + m.name));
 
                 File dest = new File(App.outDir(), m.safeName() + ".mp3");
-                List<String> urls = new ArrayList<>();
-                urls.add(url);
-
                 File f = Downloader.download(urls, dest, (pct, done, total) -> {
                     String txt = "正在下载 " + m.name;
                     if (pct >= 0) txt += "  " + pct + "%";
@@ -332,9 +459,12 @@ public class MusicFragment extends Fragment {
             if (!TextUtils.isEmpty(m.cover)) {
                 Glide.with(MusicFragment.this)
                         .load(m.cover)
-                        .placeholder(R.drawable.bg_cover_round)
-                        .error(R.drawable.bg_cover_round)
-                        .centerCrop()
+                        .apply(new RequestOptions()
+                                .placeholder(R.drawable.bg_cover_round)
+                                .error(R.drawable.bg_cover_round)
+                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                .centerCrop()
+                                .timeout(8000))
                         .into(h.ivCover);
             } else {
                 h.ivCover.setImageResource(R.drawable.bg_cover_round);

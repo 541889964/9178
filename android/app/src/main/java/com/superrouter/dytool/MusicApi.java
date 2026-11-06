@@ -4,7 +4,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -16,20 +15,18 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 /**
- * 音乐 API：网易云公开接口
- *  - 搜索：/api/cloudsearch/pc
- *  - 详情（补封面）：/api/song/detail
- *  - 播放直链：/song/media/outer/url （302 跳 CDN，免登录、免版权费曲目可用）
+ * 音乐 API（多源兜底）
+ * 搜索：网易云 cloudsearch
+ * 播放：网易云 outer/url + qijieya + injahow + kuwo 多源并发探测
  */
 public class MusicApi {
 
     private static final String HOST = "https://music.163.com";
     private static final String REFERER = "https://music.163.com/";
     private static final OkHttpClient CLIENT = App.http().newBuilder()
-            .callTimeout(25, TimeUnit.SECONDS)
+            .callTimeout(20, TimeUnit.SECONDS)
             .build();
 
-    /** 搜索歌曲 */
     public static List<MusicItem> search(String keyword, int limit) throws IOException {
         List<MusicItem> out = new ArrayList<>();
         if (keyword == null || keyword.trim().isEmpty()) return out;
@@ -41,7 +38,7 @@ public class MusicApi {
                 .addQueryParameter("offset", "0")
                 .build();
 
-        String body = get(url);
+        String body = get(url, REFERER);
         try {
             JSONObject root = new JSONObject(body);
             JSONObject result = root.optJSONObject("result");
@@ -56,6 +53,14 @@ public class MusicApi {
                 m.id = s.optString("id", "");
                 m.name = s.optString("name", "");
                 m.durationMs = s.optLong("dt", s.optLong("duration", 0));
+
+                JSONObject priv = s.optJSONObject("privilege");
+                if (priv != null) {
+                    m.fee = priv.optInt("fee", 0);
+                    m.playable = priv.optInt("st", 0) < 0 ? false : true;
+                    int pl = priv.optInt("pl", 0);
+                    m.maxBr = priv.optInt("maxbr", 0);
+                }
 
                 JSONArray ar = s.optJSONArray("ar");
                 if (ar == null) ar = s.optJSONArray("artists");
@@ -79,11 +84,25 @@ public class MusicApi {
                     m.cover = al.optString("picUrl", "");
                 }
                 if (m.cover.isEmpty()) m.cover = s.optString("picUrl", "");
+                if (m.cover.isEmpty()) {
+                    String picId = s.optString("picId", "");
+                    if (!picId.isEmpty()) {
+                        try {
+                            long pid = Long.parseLong(picId);
+                            m.cover = "https://p2.music.126.net/" + pid + ".jpg";
+                        } catch (Exception ignored) {}
+                    }
+                }
 
                 if (!m.id.isEmpty()) out.add(m);
             }
 
-            // 补齐缺失封面
+            // 免费可播的排前面
+            out.sort((a, b) -> {
+                if (a.playable != b.playable) return a.playable ? -1 : 1;
+                return 0;
+            });
+
             fillCovers(out);
             return out;
         } catch (Exception e) {
@@ -91,7 +110,6 @@ public class MusicApi {
         }
     }
 
-    /** 批量查详情补封面 */
     private static void fillCovers(List<MusicItem> items) {
         List<String> need = new ArrayList<>();
         for (MusicItem m : items) if (m.cover == null || m.cover.isEmpty()) need.add(m.id);
@@ -108,7 +126,7 @@ public class MusicApi {
             HttpUrl url = HttpUrl.parse(HOST + "/api/song/detail").newBuilder()
                     .addQueryParameter("ids", ids.toString())
                     .build();
-            String body = get(url);
+            String body = get(url, REFERER);
             JSONObject root = new JSONObject(body);
             JSONArray songs = root.optJSONArray("songs");
             if (songs == null) return;
@@ -132,39 +150,71 @@ public class MusicApi {
         }
     }
 
-    /** 取播放/下载直链（跟随 302 得到 CDN 真实地址） */
-    public static String resolveAudioUrl(String songId) throws IOException {
-        HttpUrl url = HttpUrl.parse(HOST + "/song/media/outer/url")
-                .newBuilder()
-                .addQueryParameter("id", songId + ".mp3")
-                .build();
+    /** 多源返回候选播放直链（并发探测选最快可用） */
+    public static List<String> resolveAudioUrls(String songId) throws IOException {
+        List<String> urls = new ArrayList<>();
 
-        Request req = new Request.Builder()
-                .url(url)
-                .header("User-Agent", App.UA)
-                .header("Referer", REFERER)
-                .header("Accept", "*/*")
-                .head()
-                .build();
-
-        try (Response r = CLIENT.newCall(req).execute()) {
-            String loc = r.header("Location");
-            if (loc != null && (loc.contains("music.126.net") || loc.contains(".mp3"))) {
-                return loc;
+        // 源1：网易云官方外链（302 → CDN）
+        try {
+            HttpUrl url = HttpUrl.parse(HOST + "/song/media/outer/url")
+                    .newBuilder()
+                    .addQueryParameter("id", songId + ".mp3")
+                    .build();
+            Request req = new Request.Builder()
+                    .url(url)
+                    .header("User-Agent", App.UA)
+                    .header("Referer", REFERER)
+                    .header("Accept", "*/*")
+                    .head()
+                    .build();
+            try (Response r = CLIENT.newCall(req).execute()) {
+                String loc = r.header("Location");
+                if (loc != null && !loc.contains("/404")) {
+                    urls.add(loc);
+                }
             }
-            String finalUrl = r.request().url().toString();
-            if (finalUrl.contains("music.126.net") || finalUrl.contains(".mp3")) {
-                return finalUrl;
-            }
-            return null;
+        } catch (Exception ignored) {
         }
+
+        // 源2：qijieya meting（302 → 直链）
+        String q = followHead("https://api.qijieya.cn/meting/?type=url&id=" + songId);
+        if (q != null) urls.add(q);
+
+        // 源3：injahow meting
+        String i = followHead("https://api.injahow.cn/meting/?type=url&id=" + songId);
+        if (i != null) urls.add(i);
+
+        // 源4：网易云外链（直接作为下载地址，不解析 302）
+        urls.add(HOST + "/song/media/outer/url?id=" + songId + ".mp3");
+
+        if (urls.isEmpty()) throw new IOException("无可用音源");
+        return urls;
     }
 
-    private static String get(HttpUrl url) throws IOException {
+    private static String followHead(String api) {
+        try {
+            Request req = new Request.Builder()
+                    .url(api)
+                    .header("User-Agent", App.UA)
+                    .header("Accept", "*/*")
+                    .head()
+                    .build();
+            try (Response r = CLIENT.newCall(req).execute()) {
+                String loc = r.header("Location");
+                if (loc != null && loc.startsWith("http")) return loc;
+                String finalUrl = r.request().url().toString();
+                if (finalUrl.contains(".mp3") || finalUrl.contains("music.126.net")) return finalUrl;
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    private static String get(HttpUrl url, String referer) throws IOException {
         Request req = new Request.Builder()
                 .url(url)
                 .header("User-Agent", App.UA)
-                .header("Referer", REFERER)
+                .header("Referer", referer)
                 .header("Accept", "application/json")
                 .get()
                 .build();

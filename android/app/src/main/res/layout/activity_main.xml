@@ -6,11 +6,12 @@
     android:background="@color/bg"
     android:orientation="vertical">
 
-    <FrameLayout
-        android:id="@+id/container"
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/pager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:overScrollMode="never" />
 
     <View
         android:layout_width="match_parent"
@@ -22,6 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/surface"
+        android:elevation="8dp"
         app:itemIconTint="@color/nav_tint"
         app:itemTextColor="@color/nav_tint"
         app:itemRippleColor="@color/ripple"

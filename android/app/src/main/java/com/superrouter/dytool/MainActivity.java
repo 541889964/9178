@@ -4,70 +4,78 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.HapticFeedbackConstants;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
 
+    private ViewPager2 pager;
     private BottomNavigationView nav;
-    private Fragment videoFrag;
-    private Fragment musicFrag;
+    private VideoFragment videoFrag;
+    private MusicFragment musicFrag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        pager = findViewById(R.id.pager);
         nav = findViewById(R.id.nav);
+
         videoFrag = new VideoFragment();
         musicFrag = new MusicFragment();
 
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, videoFrag, "video")
-                    .add(R.id.container, musicFrag, "music")
-                    .hide(musicFrag)
-                    .commit();
-        } else {
-            videoFrag = getSupportFragmentManager().findFragmentByTag("video");
-            musicFrag = getSupportFragmentManager().findFragmentByTag("music");
-            if (videoFrag == null) videoFrag = new VideoFragment();
-            if (musicFrag == null) musicFrag = new MusicFragment();
-        }
+        pager.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        pager.setOffscreenPageLimit(2);
 
-        nav.setOnNavigationItemSelectedListener(this::onNavSelected);
+        pager.setAdapter(new FragmentStateAdapter(this) {
+            @NonNull
+            @Override
+            public Fragment createFragment(int position) {
+                return position == 0 ? videoFrag : musicFrag;
+            }
+
+            @Override
+            public int getItemCount() {
+                return 2;
+            }
+        });
+
+        pager.setPageTransformer((page, position) -> {
+            float abs = Math.abs(position);
+            float scale = 0.90f + (1 - abs) * 0.10f;
+            page.setScaleX(scale);
+            page.setScaleY(scale);
+            page.setAlpha(0.55f + (1 - abs) * 0.45f);
+        });
+
+        pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                nav.getMenu().getItem(position).setChecked(true);
+            }
+        });
+
+        nav.setOnNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            int target = id == R.id.tab_video ? 0 : 1;
+            if (pager.getCurrentItem() != target) {
+                pager.setCurrentItem(target, true);
+            }
+            nav.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+            return true;
+        });
 
         startKeepAlive();
         handleShare(getIntent());
-    }
-
-    private boolean onNavSelected(@NonNull android.view.MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.tab_video) {
-            show(videoFrag, musicFrag);
-            return true;
-        } else if (id == R.id.tab_music) {
-            show(musicFrag, videoFrag);
-            return true;
-        }
-        return false;
-    }
-
-    private void show(Fragment target, Fragment other) {
-        if (target == null || target.isAdded()) {
-            if (target != null && other != null) {
-                getSupportFragmentManager().beginTransaction()
-                        .show(target).hide(other).commitAllowingStateLoss();
-            }
-            return;
-        }
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.container, target).hide(other)
-                .commitAllowingStateLoss();
     }
 
     private void startKeepAlive() {
@@ -86,26 +94,21 @@ public class MainActivity extends AppCompatActivity {
         handleShare(intent);
     }
 
-    /** 从抖音分享到本应用时，自动切到视频页并解析 */
     private void handleShare(Intent intent) {
         if (intent == null || !Intent.ACTION_SEND.equals(intent.getAction())) return;
         String text = intent.getStringExtra(Intent.EXTRA_TEXT);
         if (TextUtils.isEmpty(text)) return;
 
-        nav.setSelectedItemId(R.id.tab_video);
-        show(videoFrag, musicFrag);
-
-        if (videoFrag instanceof VideoFragment) {
-            final String t = text;
-            videoFrag.getView().postDelayed(() -> ((VideoFragment) videoFrag).parseFromText(t), 300);
+        pager.setCurrentItem(0, false);
+        if (videoFrag != null && videoFrag.getView() != null) {
+            videoFrag.getView().postDelayed(() -> videoFrag.parseFromText(text), 350);
         }
     }
 
     @Override
     public void onBackPressed() {
-        if (nav.getSelectedItemId() != R.id.tab_video) {
-            nav.setSelectedItemId(R.id.tab_video);
-            show(videoFrag, musicFrag);
+        if (pager.getCurrentItem() != 0) {
+            pager.setCurrentItem(0, true);
             return;
         }
         super.onBackPressed();
